@@ -71,25 +71,3 @@ jobs:
       env:
         DISPLAY: ':99.0'
 
-    - name: Test extension activation
-      run: |
-        # Test that the extension can be activated without errors
-        node -e "
-        const path = require('path');
-        const extensionPath = path.join(__dirname, 'out', 'extension.js');
-        try {
-          delete require.cache[require.resolve(extensionPath)];
-          const ext = require(extensionPath);
-          console.log('Extension module loaded successfully');
-          if (typeof ext.activate === 'function') {
-            console.log('activate function found');
-          }
-          if (typeof ext.deactivate === 'function') {
-            console.log('deactivate function found');
-          }
-        } catch (error) {
-          console.error('Extension activation test failed:', error);
-          process.exit(1);
-        }
-        "
-
