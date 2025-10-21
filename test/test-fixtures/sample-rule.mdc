@@ -1,0 +1,29 @@
+---
+type: manual
+description: Sample rule for testing
+globs: ["*.ts", "*.js"]
+alwaysApply: false
+---
+
+# Sample Rule
+
+This is a sample rule file used for testing purposes.
+
+## Guidelines
+
+- Follow TypeScript best practices
+- Use strict type checking
+- Implement proper error handling
+
+## Examples
+
+```typescript
+// Good example
+const processData = async (data: string): Promise<Result> => {
+  try {
+    return await validateAndProcess(data);
+  } catch (error) {
+    throw new Error(`Processing failed: ${error.message}`);
+  }
+};
+```
