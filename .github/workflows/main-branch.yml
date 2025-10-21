@@ -1,0 +1,27 @@
+name: Main Branch Merge
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  # This job ensures that the CD pipeline runs after merges to main
+  trigger-cd:
+    name: Trigger CD Pipeline
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Verify merge to main
+      run: |
+        echo "✅ Merge to main branch detected"
+        echo "🚫 CD Pipeline is currently disabled"
+        echo "📝 Extension is not ready for marketplace deployment"
+        echo "🔧 CD Pipeline can be enabled when ready for deployment"
+
+    - name: Display commit info
+      run: |
+        echo "Commit: ${{ github.sha }}"
+        echo "Author: ${{ github.event.head_commit.author.name }}"
+        echo "Message: ${{ github.event.head_commit.message }}"
+        echo "Branch: ${{ github.ref }}"

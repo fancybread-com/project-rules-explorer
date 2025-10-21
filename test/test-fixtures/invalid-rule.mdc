@@ -1,0 +1,9 @@
+---
+type: invalid-type
+description: This rule has invalid metadata
+invalidField: true
+---
+
+# Invalid Rule
+
+This rule file is intentionally invalid for testing error handling.

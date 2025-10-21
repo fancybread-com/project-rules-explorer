@@ -1,0 +1,26 @@
+# CD Pipeline - DISABLED
+# This workflow is currently disabled as the extension is not ready for marketplace deployment
+# To enable: uncomment the workflow below and configure marketplace secrets
+
+name: CD Pipeline (DISABLED)
+
+# Workflow is disabled - no triggers
+# on:
+#   push:
+#     branches: [ main ]
+#   release:
+#     types: [ published ]
+
+jobs:
+  disabled:
+    name: CD Pipeline Disabled
+    runs-on: ubuntu-latest
+    if: false  # Never runs
+
+    steps:
+    - name: CD Pipeline Disabled
+      run: |
+        echo "🚫 CD Pipeline is currently disabled"
+        echo "📝 Extension is not ready for marketplace deployment"
+        echo "🔧 To enable: uncomment the workflow triggers and configure VSCE_PAT secret"
+        echo "📚 See README for deployment setup instructions"
