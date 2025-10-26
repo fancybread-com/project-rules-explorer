@@ -210,9 +210,9 @@
     "pretest": "npm run compile && npm run compile:test && npm run lint",
     "compile:test": "tsc -p ./test",
     "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js",
+    "test": "node out/test/runTest.js",
     "test:unit": "mocha",
-    "test:ci": "npm run compile && npm run test",
+    "test:ci": "npm run compile && npm run compile:test && npm run test",
     "test:coverage": "nyc npm run test:unit",
     "ci": "npm run lint && npm run test:ci"
   },
