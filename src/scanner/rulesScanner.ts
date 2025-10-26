@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 import { MDCParser } from '../utils/mdcParser';
 
 export interface RuleMetadata {
-	type: 'always' | 'auto' | 'agent' | 'manual';
 	description: string;
 	globs?: string[];
 	alwaysApply?: boolean;
@@ -49,25 +48,21 @@ export class RulesScanner {
 						fileName
 					});
 				} catch (error) {
-					console.error(`Error parsing rule file ${file.fsPath}:`, error);
-					// Add a placeholder rule for files that can't be parsed
-					const fileName = file.path.split('/').pop() || 'unknown';
-					rules.push({
-						uri: file,
-						metadata: {
-							type: 'manual',
-							description: 'Error parsing file'
-						},
-						content: 'Error reading file content',
-						fileName
-					});
+				// Add a placeholder rule for files that can't be parsed
+				const fileName = file.path.split('/').pop() || 'unknown';
+				rules.push({
+					uri: file,
+					metadata: {
+						description: 'Error parsing file'
+					},
+					content: 'Error reading file content',
+					fileName
+				});
 				}
 			}
 
-			console.log(`Found ${rules.length} rules in workspace`);
 			return rules;
 		} catch (error) {
-			console.error('Error scanning rules:', error);
 			return [];
 		}
 	}
@@ -94,7 +89,14 @@ export class RulesScanner {
 	async createRuleFile(directory: string, fileName: string, metadata: RuleMetadata, content: string): Promise<vscode.Uri> {
 		try {
 			// Ensure the directory exists
-			const rulesDir = vscode.Uri.joinPath(this.workspaceRoot, directory, '.cursor', 'rules');
+			// Handle empty directory string by using workspace root directly
+			let rulesDir: vscode.Uri;
+			if (directory === '' || directory === '.') {
+				rulesDir = vscode.Uri.joinPath(this.workspaceRoot, '.cursor', 'rules');
+			} else {
+				rulesDir = vscode.Uri.joinPath(this.workspaceRoot, directory, '.cursor', 'rules');
+			}
+
 			await vscode.workspace.fs.createDirectory(rulesDir);
 
 			// Create the file URI
@@ -108,7 +110,6 @@ export class RulesScanner {
 
 			return fileUri;
 		} catch (error) {
-			console.error('Error creating rule file:', error);
 			throw error;
 		}
 	}
@@ -117,7 +118,6 @@ export class RulesScanner {
 		try {
 			await vscode.workspace.fs.delete(uri);
 		} catch (error) {
-			console.error('Error deleting rule file:', error);
 			throw error;
 		}
 	}

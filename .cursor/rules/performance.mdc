@@ -1,5 +1,4 @@
 ---
-type: auto
 description: Performance optimization for VS Code extensions
 globs: ["**/*.ts", "**/*.js"]
 alwaysApply: false

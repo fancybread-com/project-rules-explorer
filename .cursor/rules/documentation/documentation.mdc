@@ -1,5 +1,4 @@
 ---
-type: manual
 description: Documentation standards for VS Code extensions
 globs: ["**/*.md", "**/*.ts", "package.json"]
 alwaysApply: false

@@ -24,7 +24,6 @@ let isActivated = false;
 export function activate(context: vscode.ExtensionContext) {
 	// Prevent multiple activations
 	if (isActivated) {
-		console.log('Extension already activated, skipping...');
 		return;
 	}
 	isActivated = true;
@@ -33,7 +32,6 @@ export function activate(context: vscode.ExtensionContext) {
 	outputChannel = vscode.window.createOutputChannel('Project Rules Explorer');
 	outputChannel.show();
 	outputChannel.appendLine('=== Project Rules Explorer extension activated ===');
-	console.log('=== Project Rules Explorer extension activated ===');
 
 	const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
 
@@ -61,25 +59,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register commands
 	outputChannel.appendLine('Registering commands...');
-	console.log('Registering commands...');
 	try {
 		RuleCommands.registerCommands(context);
 		outputChannel.appendLine('RuleCommands registered');
-		console.log('RuleCommands registered');
 		StateCommands.registerCommands(context);
 		outputChannel.appendLine('StateCommands registered');
-		console.log('StateCommands registered');
 		ProjectCommands.registerCommands(context);
 		outputChannel.appendLine('ProjectCommands registered');
-		console.log('ProjectCommands registered');
 		RulePreviewEditor.registerCommands(context);
 		outputChannel.appendLine('RulePreviewEditor registered');
-		console.log('RulePreviewEditor registered');
 		outputChannel.appendLine('All commands registered successfully');
-		console.log('All commands registered successfully');
 	} catch (error) {
 		outputChannel.appendLine(`Error registering commands: ${error}`);
-		console.error('Error registering commands:', error);
 	}
 
 	// Register refresh command
@@ -100,7 +91,6 @@ export function activate(context: vscode.ExtensionContext) {
 		outputChannel.appendLine('Initial data load completed successfully');
 	}).catch(error => {
 		outputChannel.appendLine(`Error during initial data load: ${error}`);
-		console.error('Error during initial data load:', error);
 	});
 
 	// Add subscriptions
@@ -112,12 +102,10 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	outputChannel.appendLine('Project Rules Explorer extension setup complete');
-	console.log('Project Rules Explorer extension setup complete');
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {
-	console.log('Project Rules Explorer extension deactivating...');
 	isActivated = false;
 	if (fileWatcher) {
 		fileWatcher.dispose();
@@ -133,7 +121,6 @@ export function deactivate() {
 async function refreshData() {
 	try {
 		outputChannel.appendLine('Refreshing project rules and state...');
-		console.log('Refreshing project rules and state...');
 
 		// Get projects and current project
 		const [projects, currentProject] = await Promise.all([
@@ -151,8 +138,8 @@ async function refreshData() {
 				path: currentWorkspaceRoot.fsPath,
 				description: 'Automatically created project for current workspace'
 			});
-			await projectManager.setCurrentProject(defaultProject.id);
-			// Re-fetch projects to get the updated project with active status
+			// Don't automatically set the default project as active - let user choose
+			// Re-fetch projects to get the updated project list
 			finalProjects = await projectManager.getProjects();
 			outputChannel.appendLine(`Created default project: ${defaultProject.name}`);
 		}
@@ -175,11 +162,9 @@ async function refreshData() {
 				projectData.set(project.id, { rules, state });
 				const logMessage = `Scanned project ${project.name}: ${rules.length} rules, ${state.languages.length + state.frameworks.length + state.dependencies.length + state.buildTools.length + state.testing.length + state.codeQuality.length + state.developmentTools.length + state.architecture.length + state.configuration.length + state.documentation.length} state items`;
 				outputChannel.appendLine(logMessage);
-				console.log(logMessage);
 			} catch (error) {
 				const errorMessage = `Error scanning project ${project.name}: ${error}`;
 				outputChannel.appendLine(errorMessage);
-				console.error(`Error scanning project ${project.name}:`, error);
 				// Add empty data for failed projects
 				projectData.set(project.id, {
 					rules: [],
@@ -213,11 +198,9 @@ async function refreshData() {
 
 		const successMessage = `Refreshed ${finalProjects.length} projects`;
 		outputChannel.appendLine(successMessage);
-		console.log(successMessage);
 	} catch (error) {
 		const errorMessage = `Error refreshing data: ${error}`;
 		outputChannel.appendLine(errorMessage);
-		console.error('Error refreshing data:', error);
 		vscode.window.showErrorMessage(`Failed to refresh data: ${error instanceof Error ? error.message : 'Unknown error'}`);
 	}
 }
@@ -232,19 +215,16 @@ function setupFileWatcher() {
 
 	fileWatcher.onDidCreate(() => {
 		outputChannel.appendLine('Rule file created, refreshing...');
-		console.log('Rule file created, refreshing...');
 		refreshData();
 	});
 
 	fileWatcher.onDidChange(() => {
 		outputChannel.appendLine('Rule file changed, refreshing...');
-		console.log('Rule file changed, refreshing...');
 		refreshData();
 	});
 
 	fileWatcher.onDidDelete(() => {
 		outputChannel.appendLine('Rule file deleted, refreshing...');
-		console.log('Rule file deleted, refreshing...');
 		refreshData();
 	});
 }

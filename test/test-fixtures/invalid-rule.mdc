@@ -1,5 +1,4 @@
 ---
-type: invalid-type
 description: This rule has invalid metadata
 invalidField: true
 ---

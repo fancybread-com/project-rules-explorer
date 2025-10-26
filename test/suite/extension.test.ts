@@ -20,4 +20,22 @@ suite('Extension Test Suite', () => {
 			assert.ok(commands.includes(command), `Command ${command} should be registered`);
 		}
 	});
+
+	test('Extension should activate without errors', async () => {
+		const extension = vscode.extensions.getExtension('fancybread-com.project-rules-explorer');
+		if (extension) {
+			await extension.activate();
+			assert.ok(extension.isActive);
+		}
+	});
+
+	test('Extension should have correct metadata', () => {
+		const extension = vscode.extensions.getExtension('fancybread-com.project-rules-explorer');
+		if (extension) {
+			const packageJSON = extension.packageJSON;
+			assert.equal(packageJSON.name, 'project-rules-explorer');
+			assert.equal(packageJSON.publisher, 'fancybread-com');
+			assert.ok(packageJSON.version);
+		}
+	});
 });

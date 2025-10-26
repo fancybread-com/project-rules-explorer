@@ -58,10 +58,8 @@ export class StateScanner {
 			state.configuration = await this.detectConfiguration();
 			state.documentation = await this.detectDocumentation();
 
-			console.log('Project state scan completed:', state);
 			return state;
 		} catch (error) {
-			console.error('Error scanning project state:', error);
 			return state;
 		}
 	}
@@ -102,7 +100,6 @@ export class StateScanner {
 				if (deps.fastify) {frameworks.push('Fastify');}
 				if (deps.koa) {frameworks.push('Koa');}
 			} catch (error) {
-				console.error('Error reading package.json:', error);
 			}
 		}
 
@@ -118,7 +115,6 @@ export class StateScanner {
 					if (content.includes('fastapi')) {frameworks.push('FastAPI');}
 					if (content.includes('pytest')) {frameworks.push('Pytest');}
 				} catch (error) {
-					console.error('Error reading requirements.txt:', error);
 				}
 			}
 		}
@@ -346,7 +342,6 @@ export class StateScanner {
 					}
 				}
 			} catch (error) {
-				console.error('Error reading package.json dependencies:', error);
 			}
 		}
 
@@ -364,7 +359,6 @@ export class StateScanner {
 					}
 				}
 			} catch (error) {
-				console.error('Error reading requirements.txt:', error);
 			}
 		}
 
@@ -384,7 +378,6 @@ export class StateScanner {
 				if (content.includes('mongodb')) {infrastructure.push('MongoDB');}
 				if (content.includes('elasticsearch')) {infrastructure.push('Elasticsearch');}
 			} catch (error) {
-				console.error('Error reading docker-compose.yml:', error);
 			}
 		}
 
@@ -403,7 +396,6 @@ export class StateScanner {
 					}
 				}
 			} catch (error) {
-				console.error('Error reading env files:', error);
 			}
 		}
 

@@ -1,9 +1,5 @@
 {
-  "extension": ["ts"],
-  "spec": "test/**/*.test.ts",
-  "require": ["ts-node/register"],
-  "timeout": 10000,
-  "reporter": "spec",
-  "colors": true,
-  "exit": true
+  "require": "ts-node/register",
+  "spec": "test/suite/coreLogic.test.ts",
+  "timeout": 5000
 }

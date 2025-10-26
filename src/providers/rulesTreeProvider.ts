@@ -4,10 +4,11 @@ import { Rule } from '../scanner/rulesScanner';
 import { ProjectState } from '../scanner/stateScanner';
 import { ProjectDefinition } from '../types/project';
 
-interface RulesTreeItem extends vscode.TreeItem {
+export interface RulesTreeItem extends vscode.TreeItem {
 	rule?: Rule;
 	stateItem?: any;
-	category?: 'rules' | 'state' | 'projects';
+	ruleType?: any;
+	category?: 'rules' | 'state' | 'projects' | 'ruleType';
 	directory?: string;
 	project?: ProjectDefinition;
 }
@@ -23,7 +24,6 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 	) {}
 
 	refresh(): void {
-		console.log('Tree provider refresh called');
 		this._onDidChangeTreeData.fire();
 	}
 
@@ -36,7 +36,6 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 		projects: ProjectDefinition[],
 		currentProject: ProjectDefinition | null
 	): void {
-		console.log(`Tree provider updateData: ${projects.length} projects, ${projectData.size} project data entries`);
 		this.projectData = projectData;
 		this.projects = projects;
 		this.currentProject = currentProject;
@@ -50,13 +49,10 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 		try {
 			if (!element) {
 				// Root level: show all projects
-				console.log(`Tree provider getChildren: ${this.projects.length} projects`);
 				if (this.projects.length === 0) {
-					console.log('No projects found, showing "No projects defined" message');
 					return [{
 						label: 'No projects defined',
 						collapsibleState: vscode.TreeItemCollapsibleState.None,
-						iconPath: new vscode.ThemeIcon('info'),
 						description: 'Add a project to get started',
 						command: {
 							command: 'projectRules.addProject',
@@ -72,16 +68,12 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 					) as RulesTreeItem;
 					item.project = project;
 					item.category = 'projects';
-					item.iconPath = new vscode.ThemeIcon(
-						project.active ? 'folder-opened' : 'folder'
-					);
 					item.description = project.active ? 'Active' : project.path;
 					item.tooltip = `${project.name}\n${project.path}\n${project.description || 'No description'}`;
+					item.iconPath = new vscode.ThemeIcon(project.active ? 'folder-opened' : 'folder');
 
-					// Add context menu for non-active projects
-					if (!project.active) {
-						item.contextValue = 'inactiveProject';
-					}
+					// Add context menu for projects
+					item.contextValue = project.active ? 'activeProject' : 'inactiveProject';
 
 					return item;
 				});
@@ -114,47 +106,56 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 					const item = new vscode.TreeItem(section.name, vscode.TreeItemCollapsibleState.Collapsed) as RulesTreeItem;
 					item.category = section.id as 'rules' | 'state';
 					item.project = project;
-					item.iconPath = new vscode.ThemeIcon(section.icon);
 					item.description = section.description;
+					item.iconPath = new vscode.ThemeIcon(section.icon);
+
+					// Set contextValue for Rules section to enable + button
+					if (section.id === 'rules') {
+						item.contextValue = 'rules';
+					}
+
 					return item;
 				});
 
 				// No switch option needed - users can expand any project to see its rules and state
 
 				return items;
-			} else if (element.category === 'rules' && element.project) {
-				// Rules section for specific project
-				const projectData = this.projectData.get(element.project.id);
-				const rules = projectData?.rules || [];
+		} else if (element.category === 'rules' && element.project) {
+			// Rules section for specific project
+			const projectData = this.projectData.get(element.project.id);
+			const rules = projectData?.rules || [];
 
-				if (rules.length === 0) {
-					return [{
-						label: 'No rules found',
-						collapsibleState: vscode.TreeItemCollapsibleState.None,
-						iconPath: new vscode.ThemeIcon('info'),
-						description: 'Add rules to .cursor/rules directory'
-					} as RulesTreeItem];
-				}
+			if (rules.length === 0) {
+				return [{
+					label: 'No rules found',
+					collapsibleState: vscode.TreeItemCollapsibleState.None,
+					description: 'Add rules to .cursor/rules directory'
+				} as RulesTreeItem];
+			}
 
-				// Rules section: show all rules flattened (no folder grouping)
-				return rules.map((rule) => {
-					const item = new vscode.TreeItem(
-						rule.fileName,
-						vscode.TreeItemCollapsibleState.None
-					) as RulesTreeItem;
-					item.rule = rule;
-					item.category = 'rules';
-					item.project = element.project;
-					item.iconPath = this.getRuleIcon(rule.metadata.type);
-					item.description = rule.metadata.type;
-					item.tooltip = rule.metadata.description;
-					item.command = {
-						command: 'projectRules.viewRule',
-						title: 'View Rule',
-						arguments: [rule]
-					};
-					return item;
-				});
+			// Show all rules in a flat list
+			return rules.map((rule: Rule) => {
+				const item = new vscode.TreeItem(
+					rule.fileName,
+					vscode.TreeItemCollapsibleState.None
+				) as RulesTreeItem;
+				item.rule = rule;
+				item.category = 'rules';
+				item.project = element.project;
+				item.tooltip = rule.metadata.description;
+				item.contextValue = 'rule'; // Enable context menu for individual rules
+
+				// Context-aware icon based on filename, content, and project context
+				item.iconPath = new vscode.ThemeIcon(this.getContextAwareIcon(rule, element.project));
+
+				// Open in editor instead of webview
+				item.command = {
+					command: 'vscode.open',
+					title: 'Open Rule',
+					arguments: [rule.uri]
+				};
+				return item;
+			});
 			} else if (element.category === 'state' && element.stateItem && element.project) {
 				// State item level: show individual items for a specific section
 				const section = element.stateItem;
@@ -165,8 +166,8 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 					) as RulesTreeItem;
 					treeItem.category = 'state';
 					treeItem.project = element.project;
-					treeItem.iconPath = new vscode.ThemeIcon('symbol-key');
 					treeItem.tooltip = item;
+					treeItem.iconPath = new vscode.ThemeIcon('symbol-misc');
 					return treeItem;
 				});
 			} else if (element.category === 'state' && element.project && !element.stateItem) {
@@ -178,7 +179,6 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 					return [{
 						label: 'No state data available',
 						collapsibleState: vscode.TreeItemCollapsibleState.None,
-						iconPath: new vscode.ThemeIcon('info'),
 						description: 'State not scanned yet'
 					} as RulesTreeItem];
 				}
@@ -208,24 +208,147 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 					) as RulesTreeItem;
 					item.category = 'state';
 					item.project = element.project;
-					item.iconPath = new vscode.ThemeIcon(section.icon);
 					item.description = `${section.items.length} items`;
 					item.stateItem = section;
+					item.iconPath = new vscode.ThemeIcon(section.icon);
 					return item;
 				});
 			}
 
 			return [];
 		} catch (error) {
-			console.error('Error loading tree data:', error);
 			const errorItem = new vscode.TreeItem(
 				`Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
 				vscode.TreeItemCollapsibleState.None
 			) as RulesTreeItem;
-			errorItem.iconPath = new vscode.ThemeIcon('error');
 			errorItem.tooltip = error instanceof Error ? error.stack : String(error);
 			return [errorItem];
 		}
+	}
+
+	private getContextAwareIcon(rule: Rule, project?: ProjectDefinition): string {
+		const description = rule.metadata.description.toLowerCase();
+		const fileName = rule.fileName.toLowerCase();
+
+		// Filename-based icon detection (higher priority)
+		const filenameIconMappings: Array<[string[], string]> = [
+			// Security files
+			[['security', 'auth', 'authz'], 'shield'],
+			// Testing files
+			[['test', 'spec', 'testing'], 'beaker'],
+			// Performance files
+			[['performance', 'optimize', 'perf'], 'speedometer'],
+			// Documentation files
+			[['readme', 'docs', 'documentation'], 'book'],
+			// Deployment files
+			[['deploy', 'publish', 'ci-cd'], 'rocket'],
+			// Database files
+			[['database', 'db', 'sql'], 'database'],
+			// API files
+			[['api', 'endpoint', 'rest'], 'symbol-method'],
+			// Component files (higher priority than UI)
+			[['component'], 'symbol-component'],
+			// UI/UX files
+			[['ui', 'ux', 'interface'], 'symbol-interface'],
+			// Error handling files
+			[['error', 'exception', 'handling'], 'error'],
+			// Extension files (higher priority than TypeScript)
+			[['extension'], 'extensions'],
+			// TypeScript files
+			[['typescript', 'ts-config'], 'symbol-class'],
+			// Project specific files
+			[['project-specific', 'project-specific'], 'folder-library'],
+			// React files
+			[['react', 'component', 'jsx'], 'symbol-component'],
+			// Node.js files
+			[['node', 'server', 'express'], 'server'],
+			// Git files
+			[['git', 'version', 'vcs'], 'source-control'],
+			// Configuration files
+			[['config', 'settings', 'env'], 'settings-gear'],
+			// VS Code Extension files
+			[['vscode', 'extension'], 'extensions'],
+			// Always files
+			[['always'], 'star'],
+			// Auto files
+			[['auto'], 'wrench'],
+			// Agent files
+			[['agent'], 'symbol-function'],
+			// Manual files
+			[['manual'], 'symbol-keyword']
+		];
+
+		// Description-based icon detection (lower priority)
+		const iconMappings: Array<[string[], string]> = [
+			// Security
+			[['security', 'auth', 'authentication', 'authorization'], 'shield'],
+			// Testing
+			[['test', 'testing', 'spec'], 'beaker'],
+			// Performance
+			[['performance', 'optimize', 'optimization'], 'speedometer'],
+			// Documentation
+			[['documentation', 'readme', 'changelog'], 'book'],
+			// Publishing/Deployment
+			[['publishing', 'deployment', 'deploy', 'ci/cd'], 'rocket'],
+			// Database
+			[['database', 'sql', 'db'], 'database'],
+			// API
+			[['api', 'endpoint', 'rest'], 'symbol-method'],
+			// UI/UX
+			[['ui/ux', 'user interface', 'user experience'], 'symbol-interface'],
+			// Error handling
+			[['error', 'exception'], 'error'],
+			// TypeScript
+			[['typescript', 'type safety'], 'symbol-class'],
+			// Project specific
+			[['specific rules', 'project specific'], 'folder-library'],
+			// React
+			[['react', 'component'], 'symbol-component'],
+			// Node.js
+			[['node.js', 'server'], 'server'],
+			// Git
+			[['git', 'version control'], 'source-control'],
+			// Configuration
+			[['configuration', 'settings', 'config'], 'settings-gear'],
+			// VS Code Extension
+			[['vscode', 'extension', 'vs code'], 'extensions'],
+			// Always rules
+			[['always'], 'star'],
+			// Auto rules
+			[['auto'], 'wrench'],
+			// Agent rules
+			[['agent'], 'symbol-function'],
+			// Manual rules
+			[['manual'], 'symbol-keyword']
+		];
+
+		// Check filename first for priority
+		for (const [keywords, icon] of filenameIconMappings) {
+			if (keywords.some(keyword => fileName.includes(keyword))) {
+				return icon;
+			}
+		}
+
+		// Then check description for additional matches
+		for (const [keywords, icon] of iconMappings) {
+			if (keywords.some(keyword => description.includes(keyword))) {
+				return icon;
+			}
+		}
+
+		// Project-specific icon adjustments for non-default projects
+		if (project && !project.active) {
+			// For inactive projects, use a slightly different icon to indicate they're not the active project
+			// This helps distinguish rules from different projects
+			if (fileName.includes('project-specific') || description.includes('project specific')) {
+				return 'folder-library';
+			}
+			// Add a subtle indicator for non-active project rules
+			return 'file-text';
+		}
+
+		// Default fallback icon
+		return 'file-text';
 	}
 
 	private groupRulesByDirectory(rules: Rule[]): Record<string, Rule[]> {
@@ -247,13 +370,4 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 		return groups;
 	}
 
-	private getRuleIcon(type: string): vscode.ThemeIcon {
-		switch (type) {
-			case 'always': return new vscode.ThemeIcon('symbol-constant');
-			case 'auto': return new vscode.ThemeIcon('symbol-variable');
-			case 'agent': return new vscode.ThemeIcon('symbol-method');
-			case 'manual': return new vscode.ThemeIcon('symbol-parameter');
-			default: return new vscode.ThemeIcon('book');
-		}
-	}
 }

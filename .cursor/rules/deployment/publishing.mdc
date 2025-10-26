@@ -1,5 +1,4 @@
 ---
-type: manual
 description: VS Code extension publishing and deployment guidelines
 globs: ["package.json", "**/*.vsix", "**/*.yml", "**/*.yaml"]
 alwaysApply: false

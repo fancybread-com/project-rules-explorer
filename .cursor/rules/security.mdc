@@ -1,5 +1,4 @@
 ---
-type: always
 description: Security best practices for VS Code extensions
 globs: ["**/*.ts", "**/*.js", "package.json"]
 alwaysApply: true

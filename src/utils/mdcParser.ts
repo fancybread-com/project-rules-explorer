@@ -9,38 +9,34 @@ export class MDCParser {
 			const content = await vscode.workspace.fs.readFile(uri);
 			const text = Buffer.from(content).toString('utf8');
 
-			// Parse frontmatter using gray-matter
-			const parsed = matter(text);
+		// Parse frontmatter using gray-matter
+		const parsed = matter(text);
 
-			// Extract metadata with defaults
-			const metadata: RuleMetadata = {
-				type: parsed.data.type || 'manual',
-				description: parsed.data.description || 'No description',
-				globs: parsed.data.globs || [],
-				alwaysApply: parsed.data.alwaysApply || false
-			};
+		// Extract metadata with defaults
+		const metadata: RuleMetadata = {
+			description: parsed.data.description || 'No description',
+			globs: parsed.data.globs || [],
+			alwaysApply: parsed.data.alwaysApply || false
+		};
 
-			return {
-				metadata,
-				content: parsed.content.trim()
-			};
-		} catch (error) {
-			console.error('Error parsing MDC file:', error);
-			// Return default metadata if parsing fails
-			return {
-				metadata: {
-					type: 'manual',
-					description: 'Error parsing file'
-				},
-				content: 'Error reading file content'
-			};
+		return {
+			metadata,
+			content: parsed.content.trim()
+		};
+	} catch (error) {
+		// Return default metadata if parsing fails
+		return {
+			metadata: {
+				description: 'Error parsing file'
+			},
+			content: 'Error reading file content'
+		};
 		}
 	}
 
 	static generateMDC(metadata: RuleMetadata, content: string): string {
 		// Create frontmatter object
 		const frontmatter: any = {
-			type: metadata.type,
 			description: metadata.description
 		};
 
@@ -57,6 +53,27 @@ export class MDCParser {
 		return matter.stringify(content, frontmatter);
 	}
 
+	static parseMDCFromString(text: string): { metadata: RuleMetadata; content: string } {
+		try {
+			// Parse frontmatter using gray-matter
+			const parsed = matter(text);
+
+			// Extract metadata with defaults
+			const metadata: RuleMetadata = {
+				description: parsed.data.description || 'No description',
+				globs: parsed.data.globs || [],
+				alwaysApply: parsed.data.alwaysApply || false
+			};
+
+			return {
+				metadata,
+				content: parsed.content.trim()
+			};
+		} catch (error) {
+			throw new Error(`Failed to parse MDC content: ${error instanceof Error ? error.message : 'Unknown error'}`);
+		}
+	}
+
 	static validateMDC(text: string): { valid: boolean; errors: string[] } {
 		const errors: string[] = [];
 
@@ -64,12 +81,6 @@ export class MDCParser {
 			const parsed = matter(text);
 
 			// Check required fields
-			if (!parsed.data.type) {
-				errors.push('Missing required field: type');
-			} else if (!['always', 'auto', 'agent', 'manual'].includes(parsed.data.type)) {
-				errors.push('Invalid type. Must be one of: always, auto, agent, manual');
-			}
-
 			if (!parsed.data.description) {
 				errors.push('Missing required field: description');
 			}

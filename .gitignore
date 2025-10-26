@@ -27,10 +27,19 @@ out/
 *.vsix
 .vscode-test/
 
+# TypeScript compiled output
+*.js
+*.js.map
+!test/runTest.js
+!test/runTest.js.map
+
 # VS Code Extension build artifacts
 shared-workspaces-extension/out/
 shared-workspaces-extension/node_modules/
 shared-workspaces-extension/package-lock.json
+
+# Test coverage output
+.nyc_output/
 
 # IDE
 .vscode/

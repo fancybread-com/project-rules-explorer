@@ -1,5 +1,4 @@
 ---
-type: auto
 description: Comprehensive error handling patterns for VS Code extensions
 globs: ["**/*.ts", "**/*.js"]
 alwaysApply: false

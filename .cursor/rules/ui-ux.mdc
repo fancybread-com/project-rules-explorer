@@ -1,5 +1,4 @@
 ---
-type: agent
 description: UI/UX guidelines for VS Code extension development
 globs: ["**/*.ts", "package.json"]
 alwaysApply: false
