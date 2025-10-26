@@ -1,8 +1,8 @@
 {
   "name": "project-rules-explorer",
   "displayName": "Project Rules Explorer",
-  "description": "Visualize and manage Cursor rules and project state",
-  "version": "0.1.28",
+  "description": "Visualize and manage Cursor project rules and state",
+  "version": "0.2.1",
   "publisher": "fancybread-com",
   "icon": "pre.png",
   "repository": {
@@ -36,7 +36,7 @@
         {
           "id": "project-rules",
           "title": "Project Rules Explorer",
-          "icon": "$(checklist)"
+          "icon": "$(preview)"
         }
       ]
     },
@@ -51,19 +51,9 @@
     },
     "commands": [
       {
-        "command": "projectRules.viewRule",
-        "title": "View Rule",
-        "icon": "$(eye)"
-      },
-      {
         "command": "projectRules.createRule",
         "title": "Create Rule",
         "icon": "$(add)"
-      },
-      {
-        "command": "projectRules.editRule",
-        "title": "Edit Rule",
-        "icon": "$(edit)"
       },
       {
         "command": "projectRules.deleteRule",
@@ -74,6 +64,16 @@
         "command": "projectRules.copyRule",
         "title": "Copy Rule",
         "icon": "$(copy)"
+      },
+      {
+        "command": "projectRules.renameRule",
+        "title": "Rename Rule",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "projectRules.pasteRule",
+        "title": "Paste Rule",
+        "icon": "$(paste)"
       },
       {
         "command": "projectRules.refresh",
@@ -101,11 +101,6 @@
         "icon": "$(add)"
       },
       {
-        "command": "projectRules.switchProject",
-        "title": "Switch Project",
-        "icon": "$(check)"
-      },
-      {
         "command": "projectRules.removeProject",
         "title": "Remove Project",
         "icon": "$(trash)"
@@ -119,6 +114,21 @@
         "command": "projectRules.listProjects",
         "title": "List Projects",
         "icon": "$(list)"
+      },
+      {
+        "command": "projectRules.deleteRule",
+        "title": "Delete Rule",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "projectRules.copyRule",
+        "title": "Copy Rule",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "projectRules.pasteRule",
+        "title": "Paste Rule",
+        "icon": "$(paste)"
       }
     ],
     "menus": {
@@ -156,24 +166,39 @@
           "group": "inline"
         },
         {
-          "command": "projectRules.switchProject",
-          "when": "view == projectRulesExplorer && viewItem == inactiveProject",
-          "group": "inline"
-        },
-        {
           "command": "projectRules.editProject",
-          "when": "view == projectRulesExplorer && viewItem == project",
+          "when": "view == projectRulesExplorer && viewItem == activeProject",
           "group": "inline"
         },
         {
           "command": "projectRules.removeProject",
-          "when": "view == projectRulesExplorer && viewItem == project",
+          "when": "view == projectRulesExplorer && viewItem == activeProject",
           "group": "inline"
         },
         {
           "command": "projectRules.createRule",
           "when": "view == projectRulesExplorer && viewItem == rules",
           "group": "inline"
+        },
+        {
+          "command": "projectRules.pasteRule",
+          "when": "view == projectRulesExplorer && viewItem == rules",
+          "group": "inline"
+        },
+        {
+          "command": "projectRules.copyRule",
+          "when": "view == projectRulesExplorer && viewItem == rule",
+          "group": "1_actions"
+        },
+        {
+          "command": "projectRules.renameRule",
+          "when": "view == projectRulesExplorer && viewItem == rule",
+          "group": "1_actions"
+        },
+        {
+          "command": "projectRules.deleteRule",
+          "when": "view == projectRulesExplorer && viewItem == rule",
+          "group": "1_actions"
         }
       ]
     }
@@ -186,7 +211,7 @@
     "compile:test": "tsc -p ./test",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "test:unit": "mocha --require ts-node/register test/**/*.test.ts",
+    "test:unit": "mocha",
     "test:ci": "npm run compile && npm run test",
     "test:coverage": "nyc npm run test:unit",
     "ci": "npm run lint && npm run test:ci"

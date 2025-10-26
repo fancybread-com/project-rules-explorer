@@ -5,8 +5,8 @@
     "outDir": "../out/test",
     "lib": ["ES2020"],
     "sourceMap": true,
-    "rootDir": ".",
-    "strict": false,
+    "rootDir": "../",
+    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -14,7 +14,8 @@
     "noImplicitAny": false
   },
   "include": [
-    "**/*"
+    "**/*",
+    "../src/**/*"
   ],
   "exclude": [
     "node_modules"

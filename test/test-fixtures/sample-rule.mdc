@@ -1,5 +1,4 @@
 ---
-type: manual
 description: Sample rule for testing
 globs: ["*.ts", "*.js"]
 alwaysApply: false

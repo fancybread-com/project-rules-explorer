@@ -8,7 +8,7 @@ A VS Code extension for visualizing and managing Cursor rules and project state.
 - **Rule Viewer**: Markdown preview with syntax highlighting
 - **Rule Editor**: Create/edit rules with template scaffolding
 - **Auto-refresh**: Watch file system for changes
-- **Rule Types**: Visual indicators for always/auto/agent/manual rules
+- **Rule Management**: Visual indicators and management tools for rules
 - **Project State**: Detect and display project configuration patterns
 
 ## Installation
@@ -30,13 +30,6 @@ A VS Code extension for visualizing and managing Cursor rules and project state.
 - Use the context menu on rules to edit, copy, or delete them
 - Click the "+" button to create new rules
 - Use the refresh button to manually update the view
-
-### Rule Types
-The extension recognizes four types of Cursor rules:
-- **Always**: Rules that always apply
-- **Auto**: Rules applied automatically
-- **Agent**: Rules for AI agents
-- **Manual**: Rules applied manually
 
 ## MDC Format
 

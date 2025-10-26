@@ -1,5 +1,4 @@
 ---
-type: always
 description: Specific rules for the Project Rules Explorer extension
 globs: ["**/*.ts", "**/*.js", "package.json"]
 alwaysApply: true

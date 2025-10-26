@@ -1,5 +1,4 @@
 ---
-type: always
 description: TypeScript VS Code extension development best practices
 globs: ["**/*.ts", "**/*.js", "package.json", "tsconfig.json"]
 alwaysApply: true

@@ -2,108 +2,134 @@
 import * as vscode from 'vscode';
 import { Rule } from '../scanner/rulesScanner';
 import { MDCParser } from '../utils/mdcParser';
+import { RulesTreeItem } from '../providers/rulesTreeProvider';
 
 export class RuleCommands {
 	static registerCommands(context: vscode.ExtensionContext): void {
-		// View Rule command - now uses the preview/editor interface
-		const viewRule = vscode.commands.registerCommand('projectRules.viewRule', async (rule: Rule) => {
-			try {
-				// Import and use the new preview editor
-				const { RulePreviewEditor } = await import('./rulePreviewEditor');
-				RulePreviewEditor.createOrShow(rule);
-			} catch (e: any) {
-				vscode.window.showErrorMessage(`Failed to view rule: ${e?.message || e}`);
-			}
-		});
 
 		// Create Rule command
-		const createRule = vscode.commands.registerCommand('projectRules.createRule', async () => {
+		const createRule = vscode.commands.registerCommand('projectRules.createRule', async (treeItem?: RulesTreeItem) => {
 			try {
-				// Get rule type
-				const type = await vscode.window.showQuickPick(
-					['always', 'auto', 'agent', 'manual'],
-					{ placeHolder: 'Select rule type' }
-				);
-				if (!type) {return;}
 
-				// Get rule name
-				const fileName = await vscode.window.showInputBox({
-					prompt: 'Rule file name (without extension)',
+				// Get the project context from the tree item
+				let projectPath: string;
+				if (treeItem && treeItem.project) {
+					projectPath = treeItem.project.path;
+				} else {
+					// Fallback to workspace root
+					const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
+					if (!workspaceRoot) {
+						vscode.window.showErrorMessage('No workspace folder found');
+						return;
+					}
+					projectPath = workspaceRoot.fsPath;
+				}
+
+				// Ask for rule name
+				const ruleName = await vscode.window.showInputBox({
+					prompt: 'Enter rule name',
+					placeHolder: 'my-new-rule',
 					validateInput: (value) => {
 						if (!value || value.trim().length === 0) {
-							return 'File name is required';
+							return 'Rule name cannot be empty';
 						}
-						if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
-							return 'File name can only contain letters, numbers, underscores, and hyphens';
+						if (value.includes(' ')) {
+							return 'Rule name cannot contain spaces (use kebab-case)';
+						}
+						if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
+							return 'Rule name can only contain letters, numbers, hyphens, and underscores';
 						}
 						return null;
 					}
 				});
-				if (!fileName) {return;}
 
-				// Get description
-				const description = await vscode.window.showInputBox({
-					prompt: 'Rule description'
-				});
-				if (!description) {return;}
-
-				// Get content
-				const content = await vscode.window.showInputBox({
-					prompt: 'Rule content (markdown)',
-					value: 'Write your rule content here...'
-				});
-				if (!content) {return;}
-
-				// Get directory (optional)
-				const directory = await vscode.window.showInputBox({
-					prompt: 'Directory (leave empty for root)',
-					value: ''
-				});
-
-				// Create the rule file
-				const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
-				if (!workspaceRoot) {
-					vscode.window.showErrorMessage('No workspace folder found');
-					return;
+				if (!ruleName) {
+					return; // User cancelled
 				}
 
-				const { RulesScanner } = await import('../scanner/rulesScanner');
-				const scanner = new RulesScanner(workspaceRoot);
+				const fileName = ruleName.endsWith('.mdc') ? ruleName : `${ruleName}.mdc`;
+				const rulesDir = vscode.Uri.joinPath(vscode.Uri.file(projectPath), '.cursor', 'rules');
 
-				const metadata = {
-					type: type as 'always' | 'auto' | 'agent' | 'manual',
-					description,
-					globs: [],
-					alwaysApply: false
-				};
+				// Ensure .cursor/rules directory exists
+				try {
+					await vscode.workspace.fs.stat(rulesDir);
+				} catch {
+					await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(rulesDir, '.gitkeep'), Buffer.from(''));
+				}
 
-				const fileUri = await scanner.createRuleFile(
-					directory || '',
-					`${fileName}.mdc`,
-					metadata,
-					content
-				);
+				const ruleUri = vscode.Uri.joinPath(rulesDir, fileName);
 
-				vscode.window.showInformationMessage(`Rule created: ${vscode.workspace.asRelativePath(fileUri)}`);
+				// Check if file already exists
+				try {
+					await vscode.workspace.fs.stat(ruleUri);
+					vscode.window.showErrorMessage(`A rule with the name "${fileName}" already exists`);
+					return;
+				} catch {
+					// File doesn't exist, which is what we want
+				}
+
+			// Create default rule content
+			const defaultContent = `---
+description: "New rule"
+globs: []
+alwaysApply: false
+---
+
+# ${ruleName}
+
+Describe your rule here.
+
+## Guidelines
+
+- Add specific guidelines
+- Include examples
+- Explain when to apply this rule
+`;
+
+				// Create the file
+				await vscode.workspace.fs.writeFile(ruleUri, Buffer.from(defaultContent, 'utf8'));
+
+				// Open the file in the editor
+				await vscode.window.showTextDocument(ruleUri);
+
+				vscode.window.showInformationMessage(`Rule created: ${fileName}`);
 			} catch (e: any) {
 				vscode.window.showErrorMessage(`Failed to create rule: ${e?.message || e}`);
 			}
 		});
 
-		// Edit Rule command
-		const editRule = vscode.commands.registerCommand('projectRules.editRule', async (rule: Rule) => {
-			try {
-				await vscode.window.showTextDocument(rule.uri);
-			} catch (e: any) {
-				vscode.window.showErrorMessage(`Failed to edit rule: ${e?.message || e}`);
-			}
-		});
 
 		// Delete Rule command
-		const deleteRule = vscode.commands.registerCommand('projectRules.deleteRule', async (rule: Rule) => {
+		const deleteRule = vscode.commands.registerCommand('projectRules.deleteRule', async (rule: Rule | RulesTreeItem) => {
 			try {
+				// Debug logging
+
+				// Handle both Rule and RulesTreeItem types
+				let actualRule: Rule;
+				if (rule && 'rule' in rule && rule.rule) {
+					// It's a RulesTreeItem with a rule property
+					actualRule = rule.rule;
+				} else if (rule && 'uri' in rule) {
+					// It's a Rule object directly
+					actualRule = rule as Rule;
+				} else {
+					vscode.window.showErrorMessage('No rule provided or invalid rule object');
+					return;
+				}
+
+				// Validate rule and uri
+				if (!actualRule) {
+					vscode.window.showErrorMessage('No rule provided');
+					return;
+				}
+
+				if (!actualRule.uri) {
+					vscode.window.showErrorMessage('Rule URI is missing');
+					return;
+				}
+
 				const result = await vscode.window.showWarningMessage(
-					`Are you sure you want to delete "${rule.fileName}"?`,
+					`Are you sure you want to delete "${actualRule.fileName || 'Unknown'}"?`,
 					'Yes', 'No'
 				);
 
@@ -116,8 +142,8 @@ export class RuleCommands {
 
 					const { RulesScanner } = await import('../scanner/rulesScanner');
 					const scanner = new RulesScanner(workspaceRoot);
-					await scanner.deleteRuleFile(rule.uri);
-					vscode.window.showInformationMessage(`Rule deleted: ${rule.fileName}`);
+					await scanner.deleteRuleFile(actualRule.uri);
+					vscode.window.showInformationMessage(`Rule deleted: ${actualRule.fileName || 'Unknown'}`);
 				}
 			} catch (e: any) {
 				vscode.window.showErrorMessage(`Failed to delete rule: ${e?.message || e}`);
@@ -125,16 +151,189 @@ export class RuleCommands {
 		});
 
 		// Copy Rule command
-		const copyRule = vscode.commands.registerCommand('projectRules.copyRule', async (rule: Rule) => {
+		const copyRule = vscode.commands.registerCommand('projectRules.copyRule', async (rule: Rule | RulesTreeItem) => {
 			try {
-				const mdcContent = MDCParser.generateMDC(rule.metadata, rule.content);
+				// Debug logging
+
+				// Handle both Rule and RulesTreeItem types
+				let actualRule: Rule;
+				if (rule && 'rule' in rule && rule.rule) {
+					// It's a RulesTreeItem with a rule property
+					actualRule = rule.rule;
+				} else if (rule && 'metadata' in rule) {
+					// It's a Rule object directly
+					actualRule = rule as Rule;
+				} else {
+					vscode.window.showErrorMessage('No rule provided or invalid rule object');
+					return;
+				}
+
+				// Validate rule and metadata
+				if (!actualRule) {
+					vscode.window.showErrorMessage('No rule provided');
+					return;
+				}
+
+				if (!actualRule.metadata) {
+					vscode.window.showErrorMessage('Rule metadata is missing');
+					return;
+				}
+
+			// Ensure metadata has required fields with defaults
+			const metadata = {
+				description: actualRule.metadata.description || 'No description',
+				globs: actualRule.metadata.globs || [],
+				alwaysApply: actualRule.metadata.alwaysApply || false
+			};
+
+				const content = actualRule.content || '';
+				const mdcContent = MDCParser.generateMDC(metadata, content);
 				await vscode.env.clipboard.writeText(mdcContent);
-				vscode.window.showInformationMessage(`Rule copied to clipboard: ${rule.fileName}`);
+				vscode.window.showInformationMessage(`Rule copied to clipboard: ${actualRule.fileName || 'Unknown'}`);
 			} catch (e: any) {
 				vscode.window.showErrorMessage(`Failed to copy rule: ${e?.message || e}`);
 			}
 		});
 
-		context.subscriptions.push(viewRule, createRule, editRule, deleteRule, copyRule);
+
+		// Rename Rule command
+		const renameRule = vscode.commands.registerCommand('projectRules.renameRule', async (rule: Rule | RulesTreeItem) => {
+			try {
+				// Debug logging
+
+				// Handle both Rule and RulesTreeItem types
+				let actualRule: Rule;
+				if (rule && 'rule' in rule && rule.rule) {
+					// It's a RulesTreeItem with a rule property
+					actualRule = rule.rule;
+				} else if (rule && 'uri' in rule) {
+					// It's a Rule object directly
+					actualRule = rule as Rule;
+				} else {
+					vscode.window.showErrorMessage('No rule provided or invalid rule object');
+					return;
+				}
+
+				// Validate rule and uri
+				if (!actualRule) {
+					vscode.window.showErrorMessage('No rule provided');
+					return;
+				}
+
+				if (!actualRule.uri) {
+					vscode.window.showErrorMessage('Rule URI is missing');
+					return;
+				}
+
+				const newName = await vscode.window.showInputBox({
+					prompt: 'Enter new rule name',
+					value: (actualRule.fileName || '').replace('.mdc', ''),
+					validateInput: (value) => {
+						if (!value || value.trim().length === 0) {
+							return 'Rule name cannot be empty';
+						}
+						if (value.includes(' ')) {
+							return 'Rule name cannot contain spaces (use kebab-case)';
+						}
+						if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
+							return 'Rule name can only contain letters, numbers, hyphens, and underscores';
+						}
+						return null;
+					}
+				});
+
+				if (!newName) {
+					return; // User cancelled
+				}
+
+				const newFileName = newName.endsWith('.mdc') ? newName : `${newName}.mdc`;
+				const newUri = vscode.Uri.joinPath(actualRule.uri, '..', newFileName);
+
+				// Check if file already exists
+				try {
+					await vscode.workspace.fs.stat(newUri);
+					vscode.window.showErrorMessage(`A rule with the name "${newFileName}" already exists`);
+					return;
+				} catch {
+					// File doesn't exist, which is what we want
+				}
+
+				// Read the current file content
+				const currentContent = await vscode.workspace.fs.readFile(actualRule.uri);
+
+				// Write to new location
+				await vscode.workspace.fs.writeFile(newUri, currentContent);
+
+				// Delete the old file
+				await vscode.workspace.fs.delete(actualRule.uri);
+
+				vscode.window.showInformationMessage(`Rule renamed: ${actualRule.fileName || 'Unknown'} → ${newFileName}`);
+			} catch (e: any) {
+				vscode.window.showErrorMessage(`Failed to rename rule: ${e?.message || e}`);
+			}
+		});
+
+		// Paste Rule command
+		const pasteRule = vscode.commands.registerCommand('projectRules.pasteRule', async (treeItem?: RulesTreeItem) => {
+			try {
+
+				// Get content from clipboard
+				const clipboardContent = await vscode.env.clipboard.readText();
+				if (!clipboardContent) {
+					vscode.window.showWarningMessage('No content in clipboard');
+					return;
+				}
+
+				// Try to parse the clipboard content as MDC
+				try {
+					const { metadata, content } = MDCParser.parseMDCFromString(clipboardContent);
+
+					// Create a new rule with the parsed content
+					const { RulePreviewEditor } = await import('./rulePreviewEditor');
+					const projectContext = treeItem?.project;
+
+					// Create a temporary rule with the pasted content
+					const tempRule: Rule = {
+						uri: vscode.Uri.file(''), // Will be set when saved
+						metadata: {
+							...metadata,
+							// Add a suffix to indicate it's a pasted rule
+							description: metadata.description ? `${metadata.description} (pasted)` : 'Pasted rule'
+						},
+						content: content,
+						fileName: 'pasted-rule.mdc'
+					};
+
+					// Create a new rule with the pasted content
+					RulePreviewEditor.createRuleWithContent(context, projectContext, tempRule);
+
+				} catch (parseError) {
+					// If parsing fails, treat it as plain text content
+					vscode.window.showWarningMessage('Clipboard content is not a valid rule format. Creating rule with clipboard content as text.');
+
+					const { RulePreviewEditor } = await import('./rulePreviewEditor');
+					const projectContext = treeItem?.project;
+
+				// Create a temporary rule with the clipboard content as plain text
+				const tempRule: Rule = {
+					uri: vscode.Uri.file(''), // Will be set when saved
+					metadata: {
+						description: 'Pasted content',
+						globs: [],
+						alwaysApply: false
+					},
+					content: clipboardContent,
+					fileName: 'pasted-content.mdc'
+				};
+
+					// Create a new rule with the pasted content
+					RulePreviewEditor.createRuleWithContent(context, projectContext, tempRule);
+				}
+			} catch (e: any) {
+				vscode.window.showErrorMessage(`Failed to paste rule: ${e?.message || e}`);
+			}
+		});
+
+		context.subscriptions.push(createRule, deleteRule, copyRule, pasteRule, renameRule);
 	}
 }

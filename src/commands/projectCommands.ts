@@ -5,12 +5,10 @@ import { ProjectDefinition } from '../types/project';
 
 export class ProjectCommands {
 	static registerCommands(context: vscode.ExtensionContext): void {
-		console.log('ProjectCommands.registerCommands called');
 		const projectManager = new ProjectManager(context);
 
 		// Add Project command
 		const addProject = vscode.commands.registerCommand('projectRules.addProject', async () => {
-			console.log('Add Project command triggered');
 			try {
 				// Get project name
 				const name = await vscode.window.showInputBox({
@@ -59,18 +57,6 @@ export class ProjectCommands {
 			}
 		});
 
-		// Switch Project command
-		const switchProject = vscode.commands.registerCommand('projectRules.switchProject', async (project: ProjectDefinition) => {
-			try {
-				await projectManager.setCurrentProject(project.id);
-				vscode.window.showInformationMessage(`Switched to project: ${project.name}`);
-
-				// Refresh the tree view
-				vscode.commands.executeCommand('projectRules.refresh');
-			} catch (e: any) {
-				vscode.window.showErrorMessage(`Failed to switch project: ${e?.message || e}`);
-			}
-		});
 
 		// Remove Project command
 		const removeProject = vscode.commands.registerCommand('projectRules.removeProject', async (project: ProjectDefinition) => {
@@ -163,6 +149,6 @@ ${projectList}
 			}
 		});
 
-		context.subscriptions.push(addProject, switchProject, removeProject, editProject, listProjects);
+		context.subscriptions.push(addProject, removeProject, editProject, listProjects);
 	}
 }

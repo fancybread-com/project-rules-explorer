@@ -1,5 +1,4 @@
 ---
-type: manual
 description: Testing strategies for VS Code extensions
 globs: ["**/*.test.ts", "**/*.spec.ts", "package.json"]
 alwaysApply: false
