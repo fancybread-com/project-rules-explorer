@@ -149,6 +149,118 @@ ${projectList}
 			}
 		});
 
-		context.subscriptions.push(addProject, removeProject, editProject, listProjects);
+		// Export All Projects for Agent command
+		const exportForAgent = vscode.commands.registerCommand('projectRules.exportForAgent', async () => {
+			try {
+				const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
+				if (!workspaceRoot) {
+					vscode.window.showErrorMessage('No workspace folder found');
+					return;
+				}
+
+				const { RulesScanner } = await import('../scanner/rulesScanner');
+				const { StateScanner } = await import('../scanner/stateScanner');
+
+				const projects = await projectManager.getProjects();
+				const currentProject = await projectManager.getCurrentProject();
+
+				// Build comprehensive export
+				const exportData: any = {
+					exportedAt: new Date().toISOString(),
+					totalProjects: projects.length + 1, // +1 for current workspace
+					projects: []
+				};
+
+				// Add current workspace
+				if (workspaceRoot) {
+					const currentRulesScanner = new RulesScanner(workspaceRoot);
+					const currentStateScanner = new StateScanner(workspaceRoot);
+					const [rules, state] = await Promise.all([
+						currentRulesScanner.scanRules(),
+						currentStateScanner.scanState()
+					]);
+
+					exportData.projects.push({
+						id: 'current-workspace',
+						name: 'Current Workspace',
+						path: workspaceRoot.fsPath,
+						type: 'current-workspace',
+						rules: rules.map(rule => ({
+							fileName: rule.fileName,
+							description: rule.metadata.description,
+							globs: rule.metadata.globs || [],
+							alwaysApply: rule.metadata.alwaysApply || false,
+							content: rule.content
+						})),
+						state: {
+							languages: state.languages,
+							frameworks: state.frameworks,
+							dependencies: state.dependencies,
+							buildTools: state.buildTools,
+							testing: state.testing,
+							codeQuality: state.codeQuality,
+							developmentTools: state.developmentTools,
+							architecture: state.architecture,
+							configuration: state.configuration,
+							documentation: state.documentation
+						}
+					});
+				}
+
+				// Add stored projects
+				for (const project of projects) {
+					try {
+						const projectUri = vscode.Uri.file(project.path);
+						const projectRulesScanner = new RulesScanner(projectUri);
+						const projectStateScanner = new StateScanner(projectUri);
+
+						const [rules, state] = await Promise.all([
+							projectRulesScanner.scanRules(),
+							projectStateScanner.scanState()
+						]);
+
+						exportData.projects.push({
+							id: project.id,
+							name: project.name,
+							path: project.path,
+							description: project.description,
+							type: 'stored-project',
+							rules: rules.map(rule => ({
+								fileName: rule.fileName,
+								description: rule.metadata.description,
+								globs: rule.metadata.globs || [],
+								alwaysApply: rule.metadata.alwaysApply || false,
+								content: rule.content
+							})),
+							state: {
+								languages: state.languages,
+								frameworks: state.frameworks,
+								dependencies: state.dependencies,
+								buildTools: state.buildTools,
+								testing: state.testing,
+								codeQuality: state.codeQuality,
+								developmentTools: state.developmentTools,
+								architecture: state.architecture,
+								configuration: state.configuration,
+								documentation: state.documentation
+							}
+						});
+					} catch (error) {
+						vscode.window.showErrorMessage(`Failed to scan project ${project.name}: ${error}`);
+					}
+				}
+
+				// Write to .cursor directory
+				const exportFileUri = vscode.Uri.joinPath(workspaceRoot, '.cursor', 'project-rules-export.json');
+				const content = JSON.stringify(exportData, null, 2);
+				await vscode.workspace.fs.writeFile(exportFileUri, Buffer.from(content, 'utf8'));
+
+				vscode.window.showInformationMessage(`Exported ${exportData.totalProjects} projects to .cursor/project-rules-export.json`);
+			} catch (e: any) {
+				vscode.window.showErrorMessage(`Failed to export for agent: ${e?.message || e}`);
+			}
+		});
+
+		context.subscriptions.push(addProject, removeProject, editProject, listProjects, exportForAgent);
 	}
 }

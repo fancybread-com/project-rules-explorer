@@ -10,6 +10,8 @@ A VS Code extension for visualizing and managing Cursor rules and project state.
 - **Auto-refresh**: Watch file system for changes
 - **Rule Management**: Visual indicators and management tools for rules
 - **Project State**: Detect and display project configuration patterns
+- **Multi-Project Support**: Add and manage multiple projects to reference their rules
+- **Agent Export**: Export all projects, rules, and state to `.cursor/project-rules-export.json` for agent consumption
 
 ## Installation
 
@@ -30,6 +32,11 @@ A VS Code extension for visualizing and managing Cursor rules and project state.
 - Use the context menu on rules to edit, copy, or delete them
 - Click the "+" button to create new rules
 - Use the refresh button to manually update the view
+
+### Exporting for Agent Consumption
+- Click the "Export" button in the Project Rules Explorer view
+- This creates `.cursor/project-rules-export.json` with all rules and state from all projects
+- Agents in Cursor can now read this file to understand all your project rules across multiple projects
 
 ## MDC Format
 
