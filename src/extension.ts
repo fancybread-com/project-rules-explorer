@@ -122,32 +122,40 @@ async function refreshData() {
 	try {
 		outputChannel.appendLine('Refreshing project rules and state...');
 
-		// Get projects and current project
+		// Always scan the current workspace first
+		const currentWorkspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
+		const projectData = new Map<string, { rules: Rule[], state: ProjectState }>();
+
+		if (currentWorkspaceRoot) {
+			outputChannel.appendLine(`Scanning current workspace: ${currentWorkspaceRoot.fsPath}`);
+
+			// Scan current workspace rules and state
+			const [currentRules, currentState] = await Promise.all([
+				rulesScanner?.scanRules() || Promise.resolve([]),
+				stateScanner?.scanState() || Promise.resolve({ languages: [], frameworks: [], dependencies: [], buildTools: [], testing: [], codeQuality: [], developmentTools: [], architecture: [], configuration: [], documentation: [] })
+			]);
+
+			// Use workspace path as the key for current workspace
+			const workspaceKey = 'current-workspace';
+			projectData.set(workspaceKey, { rules: currentRules, state: currentState });
+
+			const logMessage = `Scanned current workspace: ${currentRules.length} rules, ${currentState.languages.length + currentState.frameworks.length + currentState.dependencies.length + currentState.buildTools.length + currentState.testing.length + currentState.codeQuality.length + currentState.developmentTools.length + currentState.architecture.length + currentState.configuration.length + currentState.documentation.length} state items`;
+			outputChannel.appendLine(logMessage);
+		}
+
+		// Get stored projects and scan them as additional projects
 		const [projects, currentProject] = await Promise.all([
 			projectManager.getProjects(),
 			projectManager.getCurrentProject()
 		]);
 
-		// If no projects are defined but we have a workspace, create a default project
-		let finalProjects = projects;
-		const currentWorkspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
-		if (projects.length === 0 && currentWorkspaceRoot) {
-			outputChannel.appendLine('No projects defined, creating default project for current workspace');
-			const defaultProject = await projectManager.addProject({
-				name: 'Current Workspace',
-				path: currentWorkspaceRoot.fsPath,
-				description: 'Automatically created project for current workspace'
-			});
-			// Don't automatically set the default project as active - let user choose
-			// Re-fetch projects to get the updated project list
-			finalProjects = await projectManager.getProjects();
-			outputChannel.appendLine(`Created default project: ${defaultProject.name}`);
-		}
+		// Scan additional stored projects (excluding current workspace)
+		for (const project of projects) {
+			// Skip if this project is the current workspace
+			if (currentWorkspaceRoot && project.path === currentWorkspaceRoot.fsPath) {
+				continue;
+			}
 
-		// Scan all projects
-		const projectData = new Map<string, { rules: Rule[], state: ProjectState }>();
-
-		for (const project of finalProjects) {
 			try {
 				const projectUri = vscode.Uri.file(project.path);
 				const projectRulesScanner = new RulesScanner(projectUri);
@@ -190,13 +198,26 @@ async function refreshData() {
 		}
 
 		// Update tree provider with all project data
-		const finalCurrentProject = finalProjects.length > 0 ? finalProjects.find(p => p.active) || finalProjects[0] : null;
-		treeProvider.updateData(projectData, finalProjects, finalCurrentProject);
+		// Create a virtual project for the current workspace
+		const allProjects = [...projects];
+		if (currentWorkspaceRoot) {
+			allProjects.unshift({
+				id: 'current-workspace',
+				name: 'Current Workspace',
+				path: currentWorkspaceRoot.fsPath,
+				description: 'Current workspace',
+				lastAccessed: new Date(),
+				active: true
+			});
+		}
+
+		const finalCurrentProject = allProjects.find(p => p.active) || allProjects[0] || null;
+		treeProvider.updateData(projectData, allProjects, finalCurrentProject);
 
 		// Refresh the tree view
 		treeProvider.refresh();
 
-		const successMessage = `Refreshed ${finalProjects.length} projects`;
+		const successMessage = `Refreshed ${allProjects.length} projects (including current workspace)`;
 		outputChannel.appendLine(successMessage);
 	} catch (error) {
 		const errorMessage = `Error refreshing data: ${error}`;

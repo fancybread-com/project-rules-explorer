@@ -2,7 +2,7 @@
   "name": "project-rules-explorer",
   "displayName": "Project Rules Explorer",
   "description": "Visualize and manage Cursor project rules and state",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "publisher": "fancybread-com",
   "icon": "pre.png",
   "repository": {
@@ -27,7 +27,8 @@
     "onView:projectRulesExplorer",
     "onCommand:projectRules.addProject",
     "onCommand:projectRules.refresh",
-    "onCommand:projectRules.listProjects"
+    "onCommand:projectRules.listProjects",
+    "onCommand:projectRules.exportForAgent"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -116,6 +117,11 @@
         "icon": "$(list)"
       },
       {
+        "command": "projectRules.exportForAgent",
+        "title": "Export All for Agent",
+        "icon": "$(export)"
+      },
+      {
         "command": "projectRules.deleteRule",
         "title": "Delete Rule",
         "icon": "$(trash)"
@@ -140,6 +146,11 @@
         },
         {
           "command": "projectRules.addProject",
+          "when": "view == projectRulesExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "projectRules.exportForAgent",
           "when": "view == projectRulesExplorer",
           "group": "navigation"
         }

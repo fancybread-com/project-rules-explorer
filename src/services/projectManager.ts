@@ -14,7 +14,7 @@ export class ProjectManager {
 	}
 
 	async getCurrentProject(): Promise<ProjectDefinition | null> {
-		const currentProjectId = this.context.globalState.get<string>(ProjectManager.CURRENT_PROJECT_KEY);
+		const currentProjectId = this.context.workspaceState.get<string>(ProjectManager.CURRENT_PROJECT_KEY);
 		if (!currentProjectId) {return null;}
 
 		const projects = await this.getProjects();
@@ -49,7 +49,7 @@ export class ProjectManager {
 		await this.saveProjects(filtered);
 
 		// If we removed the current project, clear it
-		const currentProjectId = this.context.globalState.get<string>(ProjectManager.CURRENT_PROJECT_KEY);
+		const currentProjectId = this.context.workspaceState.get<string>(ProjectManager.CURRENT_PROJECT_KEY);
 		if (currentProjectId === projectId) {
 			await this.setCurrentProject(null);
 		}
@@ -71,7 +71,7 @@ export class ProjectManager {
 			}
 		}
 
-		await this.context.globalState.update(ProjectManager.CURRENT_PROJECT_KEY, projectId);
+		await this.context.workspaceState.update(ProjectManager.CURRENT_PROJECT_KEY, projectId);
 	}
 
 	async updateProject(projectId: string, updates: Partial<ProjectDefinition>): Promise<ProjectDefinition> {
@@ -99,16 +99,16 @@ export class ProjectManager {
 	}
 
 	private async getRegistry(): Promise<ProjectRegistry> {
-		const stored = this.context.globalState.get<ProjectRegistry>(ProjectManager.STORAGE_KEY);
+		const stored = this.context.workspaceState.get<ProjectRegistry>(ProjectManager.STORAGE_KEY);
 		return stored || { projects: [] };
 	}
 
 	private async saveProjects(projects: ProjectDefinition[]): Promise<void> {
 		const registry: ProjectRegistry = {
 			projects,
-			currentProject: this.context.globalState.get<string>(ProjectManager.CURRENT_PROJECT_KEY)
+			currentProject: this.context.workspaceState.get<string>(ProjectManager.CURRENT_PROJECT_KEY)
 		};
-		await this.context.globalState.update(ProjectManager.STORAGE_KEY, registry);
+		await this.context.workspaceState.update(ProjectManager.STORAGE_KEY, registry);
 	}
 
 	private generateId(): string {
