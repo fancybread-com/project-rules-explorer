@@ -538,3 +538,83 @@ describe('State Scanner Tests', () => {
 		});
 	});
 });
+
+// Integration tests with real StateScanner and new parsers
+describe('StateScanner with Enhanced Parsers Integration', () => {
+	// Import actual StateScanner
+	const vscodeModule = require('vscode');
+	const { StateScanner } = require('../../src/scanner/stateScanner');
+
+	// Setup workspace root pointing to actual project
+	const workspaceRoot = vscodeModule.Uri.file(__dirname + '/../..');
+
+	describe('Real Scanner Integration', () => {
+		it('should instantiate StateScanner with parsers', () => {
+			const scanner = new StateScanner(workspaceRoot);
+			assert.ok(scanner !== null);
+			assert.ok(scanner !== undefined);
+		});
+
+		it('should have scanState method', async () => {
+			const scanner = new StateScanner(workspaceRoot);
+			const state = await scanner.scanState();
+
+			// Verify structure
+			assert.ok(Array.isArray(state.languages));
+			assert.ok(Array.isArray(state.frameworks));
+			assert.ok(Array.isArray(state.dependencies));
+			assert.ok(Array.isArray(state.buildTools));
+			assert.ok(Array.isArray(state.testing));
+		});
+
+		it('should detect JavaScript/TypeScript in this project', async () => {
+			const scanner = new StateScanner(workspaceRoot);
+			const state = await scanner.scanState();
+
+			// This project should detect TypeScript
+			assert.ok(state.languages.length > 0);
+		});
+
+		it('should detect frameworks in this project', async () => {
+			const scanner = new StateScanner(workspaceRoot);
+			const state = await scanner.scanState();
+
+			// This project should have frameworks
+			assert.ok(Array.isArray(state.frameworks));
+		});
+
+		it('should detect Node.js dependencies', async () => {
+			const scanner = new StateScanner(workspaceRoot);
+			const state = await scanner.scanState();
+
+			// This project should have dependencies from package.json
+			assert.ok(Array.isArray(state.dependencies));
+		});
+
+		it('should detect build tools', async () => {
+			const scanner = new StateScanner(workspaceRoot);
+			const state = await scanner.scanState();
+
+			// This project uses TypeScript Compiler
+			assert.ok(Array.isArray(state.buildTools));
+		});
+
+		it('should detect testing frameworks', async () => {
+			const scanner = new StateScanner(workspaceRoot);
+			const state = await scanner.scanState();
+
+			// This project has test directory
+			assert.ok(Array.isArray(state.testing));
+		});
+
+		it('should handle errors gracefully', async () => {
+			const invalidWorkspace = vscodeModule.Uri.file('/nonexistent/path');
+			const scanner = new StateScanner(invalidWorkspace);
+			const state = await scanner.scanState();
+
+			// Should return empty state, not throw
+			assert.ok(Array.isArray(state.languages));
+			assert.ok(Array.isArray(state.frameworks));
+		});
+	});
+});

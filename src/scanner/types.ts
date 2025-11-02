@@ -1,0 +1,171 @@
+// Types for project state detection and parsers
+import * as vscode from 'vscode';
+
+/**
+ * Represents a NuGet package reference
+ */
+export interface PackageReference {
+	name: string;
+	version?: string;
+	includeAssets?: string;
+	excludeAssets?: string;
+}
+
+/**
+ * .NET project information
+ */
+export interface DotNetProjectInfo {
+	targetFramework?: string;
+	targetFrameworks?: string[];
+	packages: PackageReference[];
+	isTestProject: boolean;
+	isWebProject: boolean;
+	sdk?: string;
+}
+
+/**
+ * Python dependency information
+ */
+export interface PythonDependency {
+	name: string;
+	version?: string;
+	required?: boolean;
+}
+
+/**
+ * Python project information
+ */
+export interface PythonProjectInfo {
+	name?: string;
+	version?: string;
+	requiresPython?: string;
+	dependencies: PythonDependency[];
+	devDependencies: PythonDependency[];
+	buildSystem?: string;
+}
+
+/**
+ * Node.js/JavaScript project information
+ */
+export interface NodeProjectInfo {
+	name?: string;
+	version?: string;
+	engines?: {
+		node?: string;
+		npm?: string;
+	};
+	frameworks: string[];
+	cloudSDKs: string[];
+	testingFrameworks: string[];
+}
+
+/**
+ * CI/CD workflow information
+ */
+export interface CIWorkflowInfo {
+	type: 'github-actions' | 'azure-pipelines' | 'gitlab-ci' | 'jenkins' | 'circleci';
+	name: string;
+	onEvents?: string[];
+	environments?: string[];
+	jobs?: string[];
+}
+
+/**
+ * Detected technology stack
+ */
+export interface TechnologyStack {
+	languages: string[];
+	frameworks: string[];
+	runtimes: string[];
+	cloudProviders: string[];
+}
+
+/**
+ * Parser result base interface
+ */
+export interface ParserResult<T> {
+	success: boolean;
+	data?: T;
+	errors: string[];
+}
+
+/**
+ * Cloud SDK patterns for detection
+ */
+export const CloudSDKPatterns = {
+	aws: ['@aws-sdk/', 'aws-sdk'],
+	azure: ['@azure/', 'azure-'],
+	gcp: ['@google-cloud/', '@google/gcp', 'google-cloud-']
+};
+
+/**
+ * Framework patterns for detection
+ */
+export const FrameworkPatterns = {
+	aspnetCore: ['Microsoft.AspNetCore.', 'Microsoft.Extensions.Hosting'],
+	entityFramework: ['Microsoft.EntityFrameworkCore', 'System.Data.Entity'],
+	xunit: ['xunit', 'xunit.runner'],
+	pytest: ['pytest', 'pytest-'],
+	jest: ['jest'],
+	react: ['react', 'react-dom'],
+	vue: ['vue', '@vue/'],
+	angular: ['@angular/'],
+	express: ['express'],
+	fastify: ['fastify'],
+	koa: ['koa']
+};
+
+/**
+ * Security-critical dependency patterns
+ */
+export const SecurityDependencyPatterns = {
+	crypto: ['crypto', '@azure/keyvault', 'aws-kms', 'google-cloud-kms'],
+	auth: ['passport', 'auth0', 'okta', 'firebase-auth', '@azure/identity'],
+	encryption: ['bcrypt', 'argon2', 'pbkdf2', 'scrypt']
+};
+
+/**
+ * Storage SDK patterns
+ */
+export const StorageSDKPatterns = {
+	aws: ['aws-sdk-s3', '@aws-sdk/client-s3', '@aws-sdk/lib-storage'],
+	azure: ['@azure/storage-blob', '@azure/storage-queue', '@azure/storage-file-share'],
+	gcp: ['@google-cloud/storage', '@google-cloud/datastore'],
+	postgres: ['pg', 'postgres', 'pg-promise', 'sequelize', 'prisma'],
+	mysql: ['mysql', 'mysql2', 'mariadb', 'sequelize'],
+	mongodb: ['mongodb', 'mongoose', '@azure/cosmos'],
+	redis: ['redis', 'ioredis', '@azure/redis-cache']
+};
+
+/**
+ * Testing infrastructure patterns
+ */
+export const TestInfrastructurePatterns = {
+	testcontainers: ['testcontainers', 'testcontainers-'],
+	localstack: ['localstack', 'moto'],
+	azurite: ['azurite', 'azure-storage'],
+	wiremock: ['wiremock', 'nock']
+};
+
+/**
+ * Code quality tool patterns
+ */
+export const CodeQualityPatterns = {
+	linters: {
+		stylecop: ['StyleCop.Analyzers', 'StyleCop', 'Ruleset'],
+		eslint: ['eslint', '.eslintrc'],
+		pylint: ['pylint', '.pylintrc'],
+		ruff: ['ruff']
+	},
+	formatters: {
+		'dotnet-format': ['dotnet-format'],
+		black: ['black'],
+		prettier: ['prettier', '.prettierrc']
+	},
+	typeCheckers: {
+		pyright: ['pyright'],
+		mypy: ['mypy'],
+		tsc: ['typescript']
+	}
+};
+

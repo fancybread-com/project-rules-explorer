@@ -1,5 +1,9 @@
 // State Scanner - Scan project for configuration files and patterns
 import * as vscode from 'vscode';
+import { DotNetParser } from './parsers/dotnetParser';
+import { PythonParser } from './parsers/pythonParser';
+import { CIParser } from './parsers/ciParser';
+import { NodeParser } from './parsers/nodeParser';
 
 export interface ProjectState {
 	// Technology Stack
@@ -20,7 +24,17 @@ export interface ProjectState {
 }
 
 export class StateScanner {
-	constructor(private workspaceRoot: vscode.Uri) {}
+	private dotnetParser: DotNetParser;
+	private pythonParser: PythonParser;
+	private ciParser: CIParser;
+	private nodeParser: NodeParser;
+
+	constructor(private workspaceRoot: vscode.Uri) {
+		this.dotnetParser = new DotNetParser();
+		this.pythonParser = new PythonParser();
+		this.ciParser = new CIParser();
+		this.nodeParser = new NodeParser();
+	}
 
 	async scanState(): Promise<ProjectState> {
 		const state: ProjectState = {
@@ -42,12 +56,12 @@ export class StateScanner {
 		};
 
 		try {
-			// Technology Stack
+			// Technology Stack - Enhanced with parsers
 			state.languages = await this.detectLanguages();
 			state.frameworks = await this.detectFrameworks();
 			state.dependencies = await this.detectDependencies();
 
-			// Development Environment
+			// Development Environment - Enhanced with parsers
 			state.buildTools = await this.detectBuildTools();
 			state.testing = await this.detectTesting();
 			state.codeQuality = await this.detectCodeQuality();
@@ -67,9 +81,43 @@ export class StateScanner {
 	private async detectLanguages(): Promise<string[]> {
 		const languages: string[] = [];
 
-		// Check for language indicators
-		if (await this.fileExists('package.json')) {languages.push('JavaScript/TypeScript');}
-		if (await this.fileExists('requirements.txt') || await this.fileExists('pyproject.toml')) {languages.push('Python');}
+		// Check for .NET projects with version detection
+		const dotnetResult = await this.dotnetParser.parseProjects(this.workspaceRoot);
+		if (dotnetResult.success && dotnetResult.data && dotnetResult.data.length > 0) {
+			const frameworkVersions = this.dotnetParser.getFrameworkVersions(dotnetResult.data);
+			if (frameworkVersions.length > 0) {
+				languages.push(...frameworkVersions.map(v => `C# (${v})`));
+			} else {
+				languages.push('C#');
+			}
+		}
+
+		// Check for Python projects with version detection
+		if (await this.fileExists('requirements.txt') || await this.fileExists('pyproject.toml')) {
+			const pythonResult = await this.pythonParser.parseProjects(this.workspaceRoot);
+			if (pythonResult.success && pythonResult.data) {
+				const pythonVersion = pythonResult.data.requiresPython || '';
+				if (pythonVersion) {
+					languages.push(`Python ${pythonVersion}`);
+				} else {
+					languages.push('Python');
+				}
+			} else {
+				languages.push('Python');
+			}
+		}
+
+		// Check for Node.js projects with version detection
+		if (await this.fileExists('package.json')) {
+			const nodeResult = await this.nodeParser.parseProject(this.workspaceRoot);
+			if (nodeResult && nodeResult.engines && nodeResult.engines.node) {
+				languages.push(`JavaScript/TypeScript (${nodeResult.engines.node})`);
+			} else {
+				languages.push('JavaScript/TypeScript');
+			}
+		}
+
+		// Check for other language indicators
 		if (await this.fileExists('Cargo.toml')) {languages.push('Rust');}
 		if (await this.fileExists('go.mod')) {languages.push('Go');}
 		if (await this.fileExists('composer.json')) {languages.push('PHP');}
@@ -82,24 +130,35 @@ export class StateScanner {
 	private async detectFrameworks(): Promise<string[]> {
 		const frameworks: string[] = [];
 
-		// Check for package.json (Node.js/JavaScript)
+		// Check for .NET frameworks with enhanced detection
+		const dotnetResult = await this.dotnetParser.parseProjects(this.workspaceRoot);
+		if (dotnetResult.success && dotnetResult.data && dotnetResult.data.length > 0) {
+			for (const project of dotnetResult.data) {
+				if (project.isWebProject) {
+					frameworks.push('ASP.NET Core');
+				}
+				if (project.isTestProject) {
+					frameworks.push('xUnit (testing)');
+				}
+				if (project.targetFramework) {
+					frameworks.push(`.NET ${project.targetFramework}`);
+				}
+			}
+		}
+
+		// Check for Node.js frameworks with enhanced detection
 		if (await this.fileExists('package.json')) {
-			frameworks.push('Node.js');
-
-			// Check for specific frameworks in package.json
-			try {
-				const packageJson = await this.readJsonFile('package.json');
-				const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
-
-				if (deps.react) {frameworks.push('React');}
-				if (deps.vue) {frameworks.push('Vue');}
-				if (deps.angular) {frameworks.push('Angular');}
-				if (deps.next) {frameworks.push('Next.js');}
-				if (deps.nuxt) {frameworks.push('Nuxt.js');}
-				if (deps.express) {frameworks.push('Express');}
-				if (deps.fastify) {frameworks.push('Fastify');}
-				if (deps.koa) {frameworks.push('Koa');}
-			} catch (error) {
+			const nodeResult = await this.nodeParser.parseProject(this.workspaceRoot);
+			if (nodeResult) {
+				frameworks.push('Node.js');
+				if (nodeResult.frameworks.length > 0) {
+					frameworks.push(...nodeResult.frameworks);
+				}
+				if (nodeResult.cloudSDKs.length > 0) {
+					frameworks.push(...nodeResult.cloudSDKs);
+				}
+			} else {
+				frameworks.push('Node.js');
 			}
 		}
 
@@ -204,7 +263,32 @@ export class StateScanner {
 	private async detectBuildTools(): Promise<string[]> {
 		const buildTools: string[] = [];
 
-		// Build tools
+		// Get .NET SDK from parsed projects
+		const dotnetResult = await this.dotnetParser.parseProjects(this.workspaceRoot);
+		if (dotnetResult.success && dotnetResult.data && dotnetResult.data.length > 0) {
+			const frameworkVersions = this.dotnetParser.getFrameworkVersions(dotnetResult.data);
+			if (frameworkVersions.length > 0) {
+				buildTools.push(`.NET SDK ${frameworkVersions[0]}`);
+			} else {
+				buildTools.push('.NET SDK');
+			}
+		}
+
+		// Get Python build system from parsed projects
+		const pythonResult = await this.pythonParser.parseProjects(this.workspaceRoot);
+		if (pythonResult.success && pythonResult.data && pythonResult.data.buildSystem) {
+			buildTools.push(`Python Build: ${pythonResult.data.buildSystem}`);
+		}
+
+		// Detect CI/CD configurations
+		const ciResult = await this.ciParser.parseConfigurations(this.workspaceRoot);
+		if (ciResult.success && ciResult.data && ciResult.data.length > 0) {
+			for (const workflow of ciResult.data) {
+				buildTools.push(`${workflow.type} (${workflow.name})`);
+			}
+		}
+
+		// Build tools (existing logic)
 		if (await this.fileExists('webpack.config.js')) {buildTools.push('Webpack');}
 		if (await this.fileExists('vite.config.js')) {buildTools.push('Vite');}
 		if (await this.fileExists('rollup.config.js')) {buildTools.push('Rollup');}
@@ -219,7 +303,25 @@ export class StateScanner {
 	private async detectTesting(): Promise<string[]> {
 		const testing: string[] = [];
 
-		// Testing frameworks
+		// Get testing frameworks from Node.js parser
+		if (await this.fileExists('package.json')) {
+			const nodeResult = await this.nodeParser.parseProject(this.workspaceRoot);
+			if (nodeResult && nodeResult.testingFrameworks.length > 0) {
+				testing.push(...nodeResult.testingFrameworks);
+			}
+		}
+
+		// .NET test projects
+		const dotnetResult = await this.dotnetParser.parseProjects(this.workspaceRoot);
+		if (dotnetResult.success && dotnetResult.data && dotnetResult.data.length > 0) {
+			for (const project of dotnetResult.data) {
+				if (project.isTestProject) {
+					testing.push('xUnit framework');
+				}
+			}
+		}
+
+		// Testing frameworks (existing logic)
 		if (await this.fileExists('jest.config.js')) {testing.push('Jest');}
 		if (await this.fileExists('vitest.config.js')) {testing.push('Vitest');}
 		if (await this.fileExists('cypress.config.js')) {testing.push('Cypress');}
@@ -229,14 +331,26 @@ export class StateScanner {
 			testing.push('Test directory structure');
 		}
 
-		return testing;
+		return [...new Set(testing)]; // Remove duplicates
 	}
 
 	private async detectCodeQuality(): Promise<string[]> {
 		const codeQuality: string[] = [];
 
 		// Code quality tools
-		if (await this.fileExists('.eslintrc') || await this.fileExists('eslint.config.js')) {codeQuality.push('ESLint');}
+		// Check for ESLint configuration files (ordered by commonality for early exit optimization)
+		if (await this.fileExistsAny([
+			'.eslintrc.json',
+			'.eslintrc.yaml',
+			'.eslintrc.yml',
+			'.eslintrc.js',
+			'.eslintrc',
+			'eslint.config.js',
+			'eslint.config.mjs',
+			'eslint.config.cjs'
+		])) {
+			codeQuality.push('ESLint');
+		}
 		if (await this.fileExists('.prettierrc') || await this.fileExists('prettier.config.js')) {codeQuality.push('Prettier');}
 		if (await this.fileExists('.stylelintrc')) {codeQuality.push('Stylelint');}
 		if (await this.fileExists('tsconfig.json')) {codeQuality.push('TypeScript');}
@@ -297,6 +411,15 @@ export class StateScanner {
 		}
 	}
 
+	private async fileExistsAny(relativePaths: string[]): Promise<boolean> {
+		for (const path of relativePaths) {
+			if (await this.fileExists(path)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private async directoryExists(relativePath: string): Promise<boolean> {
 		try {
 			const uri = vscode.Uri.joinPath(this.workspaceRoot, relativePath);
@@ -321,7 +444,23 @@ export class StateScanner {
 	private async detectDependencies(): Promise<string[]> {
 		const dependencies: string[] = [];
 
-		// Analyze package.json dependencies
+		// Get .NET dependencies with enhanced parsing
+		const dotnetResult = await this.dotnetParser.parseProjects(this.workspaceRoot);
+		if (dotnetResult.success && dotnetResult.data && dotnetResult.data.length > 0) {
+			const dotnetDeps = this.dotnetParser.getImportantDependencies(dotnetResult.data);
+			dependencies.push(...dotnetDeps);
+		}
+
+		// Get Python dependencies with enhanced parsing
+		if (await this.fileExists('requirements.txt') || await this.fileExists('pyproject.toml')) {
+			const pythonResult = await this.pythonParser.parseProjects(this.workspaceRoot);
+			if (pythonResult.success && pythonResult.data) {
+				const pythonDeps = this.pythonParser.getImportantDependencies(pythonResult.data);
+				dependencies.push(...pythonDeps);
+			}
+		}
+
+		// Analyze package.json dependencies (existing logic as fallback)
 		if (await this.fileExists('package.json')) {
 			try {
 				const packageJson = await this.readJsonFile('package.json');
@@ -329,11 +468,22 @@ export class StateScanner {
 
 				// Key libraries and tools
 				const importantDeps = [
-					'typescript', 'eslint', 'prettier', 'jest', 'vitest', 'cypress',
+					// TypeScript & JavaScript tooling
+					'typescript', 'eslint', 'prettier', '@typescript-eslint/parser', '@typescript-eslint/eslint-plugin',
+					// Testing frameworks
+					'jest', 'vitest', 'cypress', 'mocha', '@vscode/test-electron',
+					// Utilities
 					'axios', 'lodash', 'moment', 'dayjs', 'uuid', 'crypto',
+					// State management
 					'redux', 'zustand', 'mobx', 'apollo-client', 'graphql',
+					// Styling
 					'tailwindcss', 'styled-components', 'emotion', 'sass', 'less',
-					'webpack', 'vite', 'rollup', 'parcel', 'esbuild'
+					// Build tools
+					'webpack', 'vite', 'rollup', 'parcel', 'esbuild',
+					// VS Code extension development
+					'@types/vscode',
+					// Parsing & file handling
+					'gray-matter', 'yaml', 'js-yaml', 'csv-parser'
 				];
 
 				for (const dep of importantDeps) {
@@ -341,21 +491,22 @@ export class StateScanner {
 						dependencies.push(`${dep} (${deps[dep]})`);
 					}
 				}
-			} catch (error) {
-			}
-		}
 
-		// Python dependencies
-		if (await this.fileExists('requirements.txt')) {
-			try {
-				const content = await this.readFile('requirements.txt');
-				const lines = content.split('\n').filter(line => line.trim() && !line.startsWith('#'));
-				const importantPkgs = ['requests', 'numpy', 'pandas', 'django', 'flask', 'fastapi', 'sqlalchemy', 'pytest'];
+				// Pattern-based detection for VS Code extensions and common @types packages
+				for (const [depName, depVersion] of Object.entries(deps)) {
+					// VS Code extension packages (always include)
+					if (depName.startsWith('@vscode/')) {
+						if (!dependencies.some(d => d.startsWith(depName))) {
+							dependencies.push(`${depName} (${depVersion})`);
+						}
+					}
 
-				for (const line of lines) {
-					const pkg = line.split('==')[0].split('>=')[0].split('<=')[0].split('~=')[0].split('!=')[0].trim();
-					if (importantPkgs.includes(pkg.toLowerCase())) {
-						dependencies.push(`Python: ${pkg}`);
+					// Common @types packages only (whitelist approach)
+					const importantTypes = ['@types/node', '@types/vscode', '@types/mocha', '@types/jest'];
+					if (depName.startsWith('@types/') && importantTypes.includes(depName)) {
+						if (!dependencies.some(d => d.startsWith(depName))) {
+							dependencies.push(`${depName} (${depVersion})`);
+						}
 					}
 				}
 			} catch (error) {
