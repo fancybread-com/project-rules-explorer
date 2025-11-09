@@ -3,251 +3,251 @@
 	"displayName": "Project Rules Explorer",
 	"description": "Visualize and manage Cursor project rules and state with enhanced detection",
 	"version": "0.6.1",
-  "publisher": "fancybread-com",
-  "icon": "pre.png",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/fancybread-com/project-rules-explorer"
-  },
-  "engines": {
-    "vscode": "^1.74.0"
-  },
-  "categories": [
-    "Other",
-    "Visualization"
-  ],
-  "keywords": [
-    "cursor",
-    "rules",
-    "project",
-    "visualization",
-    "mdc"
-  ],
-  "activationEvents": [
-    "onView:projectRulesExplorer",
-    "onCommand:projectRules.addProject",
-    "onCommand:projectRules.refresh",
-    "onCommand:projectRules.listProjects",
-    "onCommand:projectRules.exportForAgent"
-  ],
-  "main": "./out/extension.js",
-  "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "project-rules",
-          "title": "Project Rules Explorer",
-          "icon": "$(preview)"
-        }
-      ]
-    },
-    "views": {
-      "project-rules": [
-        {
-          "id": "projectRulesExplorer",
-          "name": "Rules & State",
-          "when": "workspaceFolderCount > 0"
-        }
-      ]
-    },
-    "commands": [
-      {
-        "command": "projectRules.createRule",
-        "title": "Create Rule",
-        "icon": "$(add)"
-      },
-      {
-        "command": "projectRules.deleteRule",
-        "title": "Delete Rule",
-        "icon": "$(trash)"
-      },
-      {
-        "command": "projectRules.copyRule",
-        "title": "Copy Rule",
-        "icon": "$(copy)"
-      },
-      {
-        "command": "projectRules.renameRule",
-        "title": "Rename Rule",
-        "icon": "$(edit)"
-      },
-      {
-        "command": "projectRules.pasteRule",
-        "title": "Paste Rule",
-        "icon": "$(paste)"
-      },
-      {
-        "command": "projectRules.refresh",
-        "title": "Refresh",
-        "icon": "$(refresh)"
-      },
-      {
-        "command": "projectRules.scanState",
-        "title": "Scan Project State",
-        "icon": "$(search)"
-      },
-      {
-        "command": "projectRules.viewState",
-        "title": "View State",
-        "icon": "$(info)"
-      },
-      {
-        "command": "projectRules.viewStateSection",
-        "title": "View State Section",
-        "icon": "$(eye)"
-      },
-      {
-        "command": "projectRules.exportState",
-        "title": "Export State",
-        "icon": "$(export)"
-      },
-      {
-        "command": "projectRules.addProject",
-        "title": "Add Project",
-        "icon": "$(add)"
-      },
-      {
-        "command": "projectRules.removeProject",
-        "title": "Remove Project",
-        "icon": "$(trash)"
-      },
-      {
-        "command": "projectRules.editProject",
-        "title": "Edit Project",
-        "icon": "$(edit)"
-      },
-      {
-        "command": "projectRules.listProjects",
-        "title": "List Projects",
-        "icon": "$(list)"
-      },
-      {
-        "command": "projectRules.exportForAgent",
-        "title": "Export All for Agent",
-        "icon": "$(export)"
-      },
-      {
-        "command": "projectRules.deleteRule",
-        "title": "Delete Rule",
-        "icon": "$(trash)"
-      },
-      {
-        "command": "projectRules.copyRule",
-        "title": "Copy Rule",
-        "icon": "$(copy)"
-      },
-      {
-        "command": "projectRules.pasteRule",
-        "title": "Paste Rule",
-        "icon": "$(paste)"
-      }
-    ],
-    "menus": {
-      "view/title": [
-        {
-          "command": "projectRules.refresh",
-          "when": "view == projectRulesExplorer",
-          "group": "navigation"
-        },
-        {
-          "command": "projectRules.addProject",
-          "when": "view == projectRulesExplorer",
-          "group": "navigation"
-        },
-        {
-          "command": "projectRules.exportForAgent",
-          "when": "view == projectRulesExplorer",
-          "group": "navigation"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "projectRules.viewRule",
-          "when": "view == projectRulesExplorer && viewItem == rule",
-          "group": "inline"
-        },
-        {
-          "command": "projectRules.editRule",
-          "when": "view == projectRulesExplorer && viewItem == rule",
-          "group": "inline"
-        },
-        {
-          "command": "projectRules.copyRule",
-          "when": "view == projectRulesExplorer && viewItem == rule",
-          "group": "inline"
-        },
-        {
-          "command": "projectRules.deleteRule",
-          "when": "view == projectRulesExplorer && viewItem == rule",
-          "group": "inline"
-        },
-        {
-          "command": "projectRules.editProject",
-          "when": "view == projectRulesExplorer && viewItem == activeProject",
-          "group": "inline"
-        },
-        {
-          "command": "projectRules.removeProject",
-          "when": "view == projectRulesExplorer && viewItem == activeProject",
-          "group": "inline"
-        },
-        {
-          "command": "projectRules.createRule",
-          "when": "view == projectRulesExplorer && viewItem == rules",
-          "group": "inline"
-        },
-        {
-          "command": "projectRules.pasteRule",
-          "when": "view == projectRulesExplorer && viewItem == rules",
-          "group": "inline"
-        },
-        {
-          "command": "projectRules.copyRule",
-          "when": "view == projectRulesExplorer && viewItem == rule",
-          "group": "1_actions"
-        },
-        {
-          "command": "projectRules.renameRule",
-          "when": "view == projectRulesExplorer && viewItem == rule",
-          "group": "1_actions"
-        },
-        {
-          "command": "projectRules.deleteRule",
-          "when": "view == projectRulesExplorer && viewItem == rule",
-          "group": "1_actions"
-        }
-      ]
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run compile:test && npm run lint",
-    "compile:test": "tsc -p ./test",
-    "lint": "eslint src --ext ts",
-    "test": "node out/test/runTest.js",
-    "test:unit": "mocha",
-    "test:ci": "npm run compile && npm run compile:test && npm run test",
-    "test:coverage": "nyc npm run test:unit",
-    "ci": "npm run lint && npm run test:ci"
-  },
-  "devDependencies": {
-    "@types/mocha": "^10.0.0",
-    "@types/node": "^20.0.0",
-    "@types/vscode": "^1.74.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "@vscode/test-electron": "^2.3.0",
-    "eslint": "^8.0.0",
-    "glob": "^10.3.0",
-    "mocha": "^10.0.0",
-    "nyc": "^15.1.0",
-    "ts-node": "^10.9.0",
-    "typescript": "^5.4.0"
-  },
-  "dependencies": {
-    "yaml": "^2.3.0",
-    "gray-matter": "^4.0.3"
-  }
+	"publisher": "fancybread-com",
+	"icon": "pre.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/fancybread-com/project-rules-explorer"
+	},
+	"engines": {
+		"vscode": "^1.74.0"
+	},
+	"categories": [
+		"Other",
+		"Visualization"
+	],
+	"keywords": [
+		"cursor",
+		"rules",
+		"project",
+		"visualization",
+		"mdc"
+	],
+	"activationEvents": [
+		"onView:projectRulesExplorer",
+		"onCommand:projectRules.addProject",
+		"onCommand:projectRules.refresh",
+		"onCommand:projectRules.listProjects",
+		"onCommand:projectRules.exportForAgent"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "project-rules",
+					"title": "Project Rules Explorer",
+					"icon": "$(preview)"
+				}
+			]
+		},
+		"views": {
+			"project-rules": [
+				{
+					"id": "projectRulesExplorer",
+					"name": "Rules & State",
+					"when": "workspaceFolderCount > 0"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "projectRules.createRule",
+				"title": "Create Rule",
+				"icon": "$(add)"
+			},
+			{
+				"command": "projectRules.deleteRule",
+				"title": "Delete Rule",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "projectRules.copyRule",
+				"title": "Copy Rule",
+				"icon": "$(copy)"
+			},
+			{
+				"command": "projectRules.renameRule",
+				"title": "Rename Rule",
+				"icon": "$(edit)"
+			},
+			{
+				"command": "projectRules.pasteRule",
+				"title": "Paste Rule",
+				"icon": "$(paste)"
+			},
+			{
+				"command": "projectRules.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "projectRules.scanState",
+				"title": "Scan Project State",
+				"icon": "$(search)"
+			},
+			{
+				"command": "projectRules.viewState",
+				"title": "View State",
+				"icon": "$(info)"
+			},
+			{
+				"command": "projectRules.viewStateSection",
+				"title": "View State Section",
+				"icon": "$(eye)"
+			},
+			{
+				"command": "projectRules.exportState",
+				"title": "Export State",
+				"icon": "$(export)"
+			},
+			{
+				"command": "projectRules.addProject",
+				"title": "Add Project",
+				"icon": "$(add)"
+			},
+			{
+				"command": "projectRules.removeProject",
+				"title": "Remove Project",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "projectRules.editProject",
+				"title": "Edit Project",
+				"icon": "$(edit)"
+			},
+			{
+				"command": "projectRules.listProjects",
+				"title": "List Projects",
+				"icon": "$(list)"
+			},
+			{
+				"command": "projectRules.exportForAgent",
+				"title": "Export All for Agent",
+				"icon": "$(export)"
+			},
+			{
+				"command": "projectRules.deleteRule",
+				"title": "Delete Rule",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "projectRules.copyRule",
+				"title": "Copy Rule",
+				"icon": "$(copy)"
+			},
+			{
+				"command": "projectRules.pasteRule",
+				"title": "Paste Rule",
+				"icon": "$(paste)"
+			}
+		],
+		"menus": {
+			"view/title": [
+				{
+					"command": "projectRules.refresh",
+					"when": "view == projectRulesExplorer",
+					"group": "navigation"
+				},
+				{
+					"command": "projectRules.addProject",
+					"when": "view == projectRulesExplorer",
+					"group": "navigation"
+				},
+				{
+					"command": "projectRules.exportForAgent",
+					"when": "view == projectRulesExplorer",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "projectRules.viewRule",
+					"when": "view == projectRulesExplorer && viewItem == rule",
+					"group": "inline"
+				},
+				{
+					"command": "projectRules.editRule",
+					"when": "view == projectRulesExplorer && viewItem == rule",
+					"group": "inline"
+				},
+				{
+					"command": "projectRules.copyRule",
+					"when": "view == projectRulesExplorer && viewItem == rule",
+					"group": "inline"
+				},
+				{
+					"command": "projectRules.deleteRule",
+					"when": "view == projectRulesExplorer && viewItem == rule",
+					"group": "inline"
+				},
+				{
+					"command": "projectRules.editProject",
+					"when": "view == projectRulesExplorer && viewItem == activeProject",
+					"group": "inline"
+				},
+				{
+					"command": "projectRules.removeProject",
+					"when": "view == projectRulesExplorer && viewItem == activeProject",
+					"group": "inline"
+				},
+				{
+					"command": "projectRules.createRule",
+					"when": "view == projectRulesExplorer && viewItem == rules",
+					"group": "inline"
+				},
+				{
+					"command": "projectRules.pasteRule",
+					"when": "view == projectRulesExplorer && viewItem == rules",
+					"group": "inline"
+				},
+				{
+					"command": "projectRules.copyRule",
+					"when": "view == projectRulesExplorer && viewItem == rule",
+					"group": "1_actions"
+				},
+				{
+					"command": "projectRules.renameRule",
+					"when": "view == projectRulesExplorer && viewItem == rule",
+					"group": "1_actions"
+				},
+				{
+					"command": "projectRules.deleteRule",
+					"when": "view == projectRulesExplorer && viewItem == rule",
+					"group": "1_actions"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run compile:test && npm run lint",
+		"compile:test": "tsc -p ./test",
+		"lint": "eslint src --ext ts",
+		"test": "node out/test/runTest.js",
+		"test:unit": "mocha",
+		"test:ci": "npm run compile && npm run compile:test && npm run test",
+		"test:coverage": "nyc npm run test:unit",
+		"ci": "npm run lint && npm run test:ci"
+	},
+	"devDependencies": {
+		"@types/mocha": "^10.0.0",
+		"@types/node": "^24.10.0",
+		"@types/vscode": "^1.74.0",
+		"@typescript-eslint/eslint-plugin": "^8.46.3",
+		"@typescript-eslint/parser": "^8.46.3",
+		"@vscode/test-electron": "^2.3.0",
+		"eslint": "^9.39.1",
+		"glob": "^11.0.3",
+		"mocha": "^11.7.5",
+		"nyc": "^17.1.0",
+		"ts-node": "^10.9.0",
+		"typescript": "^5.4.0"
+	},
+	"dependencies": {
+		"gray-matter": "^4.0.3",
+		"yaml": "^2.3.0"
+	}
 }

@@ -32,6 +32,7 @@ out/
 *.js.map
 !test/runTest.js
 !test/runTest.js.map
+!eslint.config.js
 
 # VS Code Extension build artifacts
 shared-workspaces-extension/out/
