@@ -84,17 +84,30 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 				// Show Rules and State sections for all projects
 				const currentProjectData = this.projectData.get(project.id);
 				const rulesCount = currentProjectData?.rules.length || 0;
-				const stateCount = currentProjectData?.state ?
-					currentProjectData.state.languages.length +
-					currentProjectData.state.frameworks.length +
-					currentProjectData.state.dependencies.length +
-					currentProjectData.state.buildTools.length +
-					currentProjectData.state.testing.length +
-					currentProjectData.state.codeQuality.length +
-					currentProjectData.state.developmentTools.length +
-					currentProjectData.state.architecture.length +
-					currentProjectData.state.configuration.length +
-					currentProjectData.state.documentation.length : 0;
+
+				// Count sections (not individual items)
+				let stateCount = 0;
+				if (currentProjectData?.state) {
+					const state = currentProjectData.state;
+
+					// Enhanced sections (6 sections)
+					if (state.identity) { stateCount += 1; }
+					if (state.capabilities) { stateCount += 1; }
+					if (state.enhancedDependencies) { stateCount += 1; }
+					if (state.enhancedArchitecture) { stateCount += 1; }
+					if (state.platformContext) { stateCount += 1; }
+					if (state.agentGuidance) { stateCount += 1; }
+
+					// Grouped basic sections (3 sections)
+					stateCount += 3; // Tech Stack, Dev Environment, Project Structure
+
+					// Conditional sections
+					if (state.infrastructure) { stateCount += 1; }
+					if (state.security) { stateCount += 1; }
+					if (state.api) { stateCount += 1; }
+					if (state.deployment) { stateCount += 1; }
+					if (state.projectMetrics) { stateCount += 1; }
+				}
 
 				const sections = [
 					{ name: 'Rules', id: 'rules', icon: 'book', description: `${rulesCount} rules found` },
@@ -156,22 +169,8 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 				};
 				return item;
 			});
-			} else if (element.category === 'state' && element.stateItem && element.project) {
-				// State item level: show individual items for a specific section
-				const section = element.stateItem;
-				return section.items.map((item: string) => {
-					const treeItem = new vscode.TreeItem(
-						item,
-						vscode.TreeItemCollapsibleState.None
-					) as RulesTreeItem;
-					treeItem.category = 'state';
-					treeItem.project = element.project;
-					treeItem.tooltip = item;
-					treeItem.iconPath = new vscode.ThemeIcon('symbol-misc');
-					return treeItem;
-				});
-			} else if (element.category === 'state' && element.project && !element.stateItem) {
-				// State section for specific project - show categories
+			} else if (element.category === 'state' && element.project) {
+				// State section for specific project - show categories (basic + enhanced)
 				const projectData = this.projectData.get(element.project.id);
 				const state = projectData?.state;
 
@@ -183,34 +182,253 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 					} as RulesTreeItem];
 				}
 
-				const stateItems = [
+				const stateItems: Array<{name: string, items: any[], icon: string, isEnhanced?: boolean, sectionKey?: string}> = [
+					// === ENHANCED STATE (High Value) ===
+					// Project Identity
+					...(state.identity ? [{
+						name: 'Project Identity',
+						items: [
+							`Type: ${state.identity.projectType}`,
+							`Domain: ${state.identity.domain}`,
+							`Language: ${state.identity.primaryLanguage}`,
+							`Maturity: ${state.identity.maturityLevel}`
+						],
+						icon: 'target',
+						isEnhanced: true,
+						sectionKey: 'identity'
+					}] : []),
+
+					// Capabilities
+					...(state.capabilities ? [{
+						name: 'Capabilities',
+						items: [
+							...(state.capabilities.description ? [`Description: ${state.capabilities.description}`] : []),
+							...(state.capabilities.primaryFeatures || []),
+							...(state.capabilities.dataFormats?.length ? [`Formats: ${state.capabilities.dataFormats.join(', ')}`] : [])
+						],
+						icon: 'rocket',
+						isEnhanced: true,
+						sectionKey: 'capabilities'
+					}] : []),
+
+					// Dependencies by Purpose
+					...(state.enhancedDependencies ? [{
+						name: 'Dependencies by Purpose',
+						items: this.formatEnhancedDependencies(state.enhancedDependencies),
+						icon: 'package',
+						isEnhanced: true,
+						sectionKey: 'dependencies'
+					}] : []),
+
+					// Architecture Patterns
+					...(state.enhancedArchitecture ? [{
+						name: 'Architecture',
+						items: [
+							`Style: ${state.enhancedArchitecture.style}`,
+							`Organization: ${state.enhancedArchitecture.organization}`,
+							...(state.enhancedArchitecture.patterns || []),
+							...(state.enhancedArchitecture.entryPoints?.length ? [`Entry: ${state.enhancedArchitecture.entryPoints.join(', ')}`] : [])
+						],
+						icon: 'symbol-structure',
+						isEnhanced: true,
+						sectionKey: 'architecture'
+					}] : []),
+
+					// Platform Context
+					...(state.platformContext?.vscode ? [{
+						name: 'VS Code Platform',
+						items: [
+							`Type: ${state.platformContext.vscode.extensionType}`,
+							`Min Version: ${state.platformContext.vscode.minVersion}`,
+							`Commands: ${state.platformContext.vscode.contributes.commands}`,
+							`Views: ${state.platformContext.vscode.contributes.views}`,
+							...(state.platformContext.vscode.capabilities || [])
+						],
+						icon: 'extensions',
+						isEnhanced: true,
+						sectionKey: 'platform'
+					}] : []),
+
+					// Agent Guidance
+					...(state.agentGuidance ? [{
+						name: 'Agent Guidance',
+						items: [
+							`Approach: ${state.agentGuidance.suggestedApproach}`,
+							'',
+							'Critical Files:',
+							...(state.agentGuidance.criticalFiles || []).map(f => `  • ${f}`),
+							'',
+							'Common Tasks:',
+							...(state.agentGuidance.commonTasks || []).map(t => `  • ${t}`),
+							'',
+							'Watch Outs:',
+							...(state.agentGuidance.watchOuts || []).map(w => `  ⚠️ ${w}`)
+						],
+						icon: 'robot',
+						isEnhanced: true,
+						sectionKey: 'guidance'
+					}] : []),
+
+					// === GROUPED BASIC STATE ===
 					// Technology Stack
-					{ name: 'Languages', items: state.languages, icon: 'symbol-text' },
-					{ name: 'Frameworks', items: state.frameworks, icon: 'package' },
-					{ name: 'Dependencies', items: state.dependencies, icon: 'library' },
+					{
+						name: 'Technology Stack',
+						items: [
+							'Languages:',
+							...state.languages.map(l => `  • ${l}`),
+							'',
+							'Frameworks:',
+							...state.frameworks.map(f => `  • ${f}`)
+						],
+						icon: 'symbol-namespace',
+						sectionKey: 'tech-stack'
+					},
 
 					// Development Environment
-					{ name: 'Build Tools', items: state.buildTools, icon: 'tools' },
-					{ name: 'Testing', items: state.testing, icon: 'beaker' },
-					{ name: 'Code Quality', items: state.codeQuality, icon: 'check' },
-					{ name: 'Development Tools', items: state.developmentTools, icon: 'gear' },
+					{
+						name: 'Development Environment',
+						items: [
+							'Build Tools:',
+							...state.buildTools.map(b => `  • ${b}`),
+							'',
+							'Testing:',
+							...state.testing.map(t => `  • ${t}`),
+							'',
+							'Code Quality:',
+							...state.codeQuality.map(c => `  • ${c}`),
+							'',
+							'Development Tools:',
+							...state.developmentTools.map(d => `  • ${d}`)
+						],
+						icon: 'tools',
+						sectionKey: 'dev-environment'
+					},
 
 					// Project Structure
-					{ name: 'Architecture', items: state.architecture, icon: 'symbol-structure' },
-					{ name: 'Configuration', items: state.configuration, icon: 'settings-gear' },
-					{ name: 'Documentation', items: state.documentation, icon: 'book' }
-				];
+					{
+						name: 'Project Structure',
+						items: [
+							'Architecture:',
+							...state.architecture.map(a => `  • ${a}`),
+							'',
+							'Configuration:',
+							...state.configuration.map(c => `  • ${c}`),
+							'',
+							'Documentation:',
+							...state.documentation.map(d => `  • ${d}`)
+						],
+						icon: 'folder-library',
+						sectionKey: 'project-structure'
+					},
+
+					// Conditional sections (only show if they have content)
+					...(state.infrastructure ? [{
+						name: 'Infrastructure',
+						items: [
+							'Databases:',
+							...state.infrastructure.databases.map((d: string) => `  • ${d}`),
+							'',
+							'Cache:',
+							...state.infrastructure.cache.map((c: string) => `  • ${c}`),
+							'',
+							'Queues:',
+							...state.infrastructure.queues.map((q: string) => `  • ${q}`),
+							'',
+							'Storage:',
+							...state.infrastructure.storage.map((s: string) => `  • ${s}`),
+							'',
+							'Messaging:',
+							...state.infrastructure.messaging.map((m: string) => `  • ${m}`)
+						],
+						icon: 'server',
+						sectionKey: 'infrastructure'
+					}] : []),
+
+					...(state.security ? [{
+						name: 'Security',
+						items: [
+							'Authentication Frameworks:',
+							...state.security.authFrameworks.map((a: string) => `  • ${a}`),
+							'',
+							'Encryption:',
+							...state.security.encryption.map((e: string) => `  • ${e}`),
+							'',
+							'Vulnerability Scanning:',
+							...state.security.vulnerabilityScanning.map((v: string) => `  • ${v}`),
+							'',
+							'Secrets Management:',
+							...state.security.secretsManagement.map((s: string) => `  • ${s}`)
+						],
+						icon: 'shield',
+						sectionKey: 'security'
+					}] : []),
+
+					...(state.api ? [{
+						name: 'API',
+						items: [
+							'API Type:',
+							...state.api.type.map((t: string) => `  • ${t}`),
+							'',
+							'Documentation:',
+							...state.api.documentation.map((d: string) => `  • ${d}`),
+							'',
+							'Authentication:',
+							...state.api.authentication.map((a: string) => `  • ${a}`),
+							'',
+							'Versioning:',
+							...state.api.versioning.map((v: string) => `  • ${v}`)
+						],
+						icon: 'cloud',
+						sectionKey: 'api'
+					}] : []),
+
+					...(state.deployment ? [{
+						name: 'Deployment',
+						items: [
+							'Environments:',
+							...state.deployment.environments.map((e: string) => `  • ${e}`),
+							'',
+							'Platforms:',
+							...state.deployment.platforms.map((p: string) => `  • ${p}`),
+							'',
+							'Orchestration:',
+							...state.deployment.orchestration.map((o: string) => `  • ${o}`)
+						],
+						icon: 'rocket',
+						sectionKey: 'deployment'
+					}] : []),
+
+					...(state.projectMetrics ? [{
+						name: 'Project Metrics',
+						items: [
+							`Size: ${state.projectMetrics.estimatedSize}`,
+							`Complexity: ${state.projectMetrics.complexity}`,
+							`Files Analyzed: ${state.projectMetrics.filesAnalyzed}`,
+							`Last Analyzed: ${new Date(state.projectMetrics.lastAnalyzed).toLocaleString()}`
+						],
+						icon: 'graph',
+						sectionKey: 'metrics'
+					}] : [])
+				].filter(section => section.items.length > 0); // Only show sections with content
 
 				return stateItems.map((section) => {
 					const item = new vscode.TreeItem(
 						section.name,
-						vscode.TreeItemCollapsibleState.Collapsed
+						vscode.TreeItemCollapsibleState.None // Don't expand, click to open
 					) as RulesTreeItem;
 					item.category = 'state';
 					item.project = element.project;
 					item.description = `${section.items.length} items`;
 					item.stateItem = section;
 					item.iconPath = new vscode.ThemeIcon(section.icon);
+
+					// Add command to open in a view instead of expanding
+					item.command = {
+						command: 'projectRules.viewStateSection',
+						title: 'View State Section',
+						arguments: [section.sectionKey || section.name.toLowerCase().replace(/\s+/g, '-'), section, element.project]
+					};
+
 					return item;
 				});
 			}
@@ -224,6 +442,47 @@ export class RulesTreeProvider implements vscode.TreeDataProvider<RulesTreeItem>
 			errorItem.tooltip = error instanceof Error ? error.stack : String(error);
 			return [errorItem];
 		}
+	}
+
+	/**
+	 * Format enhanced dependencies for display
+	 */
+	private formatEnhancedDependencies(deps: any): string[] {
+		const items: string[] = [];
+
+		// Show critical path
+		if (deps.criticalPath?.length > 0) {
+			items.push(`🔴 Critical Path: ${deps.criticalPath.join(', ')}`);
+			items.push('');
+		}
+
+		// Show by purpose
+		if (deps.byPurpose) {
+			const categories = [
+				{ key: 'parsing', label: 'Parsing' },
+				{ key: 'testing', label: 'Testing' },
+				{ key: 'build', label: 'Build' },
+				{ key: 'platform', label: 'Platform' },
+				{ key: 'code-quality', label: 'Code Quality' },
+				{ key: 'utility', label: 'Utility' },
+				{ key: 'http', label: 'HTTP' },
+				{ key: 'framework', label: 'Framework' }
+			];
+
+			for (const cat of categories) {
+				const categoryDeps = deps.byPurpose[cat.key];
+				if (categoryDeps && categoryDeps.length > 0) {
+					items.push(`${cat.label}:`);
+					for (const dep of categoryDeps) {
+						const critical = dep.critical ? ' 🔴' : '';
+						items.push(`  • ${dep.name} (${dep.version})${critical} - ${dep.purpose}`);
+					}
+					items.push('');
+				}
+			}
+		}
+
+		return items;
 	}
 
 	private getContextAwareIcon(rule: Rule, project?: ProjectDefinition): string {

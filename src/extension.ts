@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 import * as vscode from 'vscode';
 import { RulesTreeProvider } from './providers/rulesTreeProvider';
+import { StateSectionContentProvider } from './providers/stateSectionContentProvider';
 import { RulesScanner } from './scanner/rulesScanner';
 import { StateScanner } from './scanner/stateScanner';
 import { RuleCommands } from './commands/ruleCommands';
@@ -57,12 +58,17 @@ export function activate(context: vscode.ExtensionContext) {
 		treeDataProvider: treeProvider
 	});
 
+	// Register state section content provider (for read-only views)
+	outputChannel.appendLine('Registering state section content provider...');
+	const stateSectionContentProvider = StateSectionContentProvider.register(context);
+	outputChannel.appendLine('State section content provider registered');
+
 	// Register commands
 	outputChannel.appendLine('Registering commands...');
 	try {
 		RuleCommands.registerCommands(context);
 		outputChannel.appendLine('RuleCommands registered');
-		StateCommands.registerCommands(context);
+		StateCommands.registerCommands(context, stateSectionContentProvider);
 		outputChannel.appendLine('StateCommands registered');
 		ProjectCommands.registerCommands(context);
 		outputChannel.appendLine('ProjectCommands registered');

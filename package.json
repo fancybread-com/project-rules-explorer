@@ -1,8 +1,8 @@
 {
-  "name": "project-rules-explorer",
-  "displayName": "Project Rules Explorer",
-  "description": "Visualize and manage Cursor project rules and state",
-  "version": "0.3.0",
+	"name": "project-rules-explorer",
+	"displayName": "Project Rules Explorer",
+	"description": "Visualize and manage Cursor project rules and state with enhanced detection",
+	"version": "0.6.1",
   "publisher": "fancybread-com",
   "icon": "pre.png",
   "repository": {
@@ -90,6 +90,11 @@
         "command": "projectRules.viewState",
         "title": "View State",
         "icon": "$(info)"
+      },
+      {
+        "command": "projectRules.viewStateSection",
+        "title": "View State Section",
+        "icon": "$(eye)"
       },
       {
         "command": "projectRules.exportState",

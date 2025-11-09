@@ -1,5 +1,9 @@
 {
   "require": "ts-node/register",
-  "spec": "test/suite/coreLogic.test.ts",
+  "spec": [
+    "test/suite/coreLogic.test.ts",
+    "test/suite/deduplicator.test.ts",
+    "test/suite/enhanced/agentGuidanceGenerator.test.ts"
+  ],
   "timeout": 5000
 }
