@@ -193,6 +193,7 @@ ${projectList}
 							content: rule.content
 						})),
 						state: {
+							// Basic state
 							languages: state.languages,
 							frameworks: state.frameworks,
 							dependencies: state.dependencies,
@@ -202,7 +203,20 @@ ${projectList}
 							developmentTools: state.developmentTools,
 							architecture: state.architecture,
 							configuration: state.configuration,
-							documentation: state.documentation
+							documentation: state.documentation,
+							// Enhanced detection (v0.3.3+)
+							infrastructure: state.infrastructure,
+							security: state.security,
+							api: state.api,
+							deployment: state.deployment,
+							projectMetrics: state.projectMetrics,
+							// Enhanced state (v0.4.0+)
+							identity: state.identity,
+							capabilities: state.capabilities,
+							enhancedArchitecture: state.enhancedArchitecture,
+							enhancedDependencies: state.enhancedDependencies,
+							platformContext: state.platformContext,
+							agentGuidance: state.agentGuidance
 						}
 					});
 				}
@@ -233,6 +247,7 @@ ${projectList}
 								content: rule.content
 							})),
 							state: {
+								// Basic state
 								languages: state.languages,
 								frameworks: state.frameworks,
 								dependencies: state.dependencies,
@@ -242,7 +257,20 @@ ${projectList}
 								developmentTools: state.developmentTools,
 								architecture: state.architecture,
 								configuration: state.configuration,
-								documentation: state.documentation
+								documentation: state.documentation,
+								// Enhanced detection (v0.3.3+)
+								infrastructure: state.infrastructure,
+								security: state.security,
+								api: state.api,
+								deployment: state.deployment,
+								projectMetrics: state.projectMetrics,
+								// Enhanced state (v0.4.0+)
+								identity: state.identity,
+								capabilities: state.capabilities,
+								enhancedArchitecture: state.enhancedArchitecture,
+								enhancedDependencies: state.enhancedDependencies,
+								platformContext: state.platformContext,
+								agentGuidance: state.agentGuidance
 							}
 						});
 					} catch (error) {

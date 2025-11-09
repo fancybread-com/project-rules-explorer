@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2025-11-02T20:44:38.769Z",
+  "exportedAt": "2025-11-09T19:39:44.772Z",
   "totalProjects": 1,
   "projects": [
     {
@@ -115,17 +115,15 @@
           "Node.js"
         ],
         "dependencies": [
-          "typescript (^5.4.0)",
-          "eslint (^8.0.0)",
-          "@typescript-eslint/parser (^6.0.0)",
-          "@typescript-eslint/eslint-plugin (^6.0.0)",
-          "mocha (^10.0.0)",
-          "@vscode/test-electron (^2.3.0)",
-          "@types/vscode (^1.74.0)",
-          "gray-matter (^4.0.3)",
           "yaml (^2.3.0)",
-          "@types/mocha (^10.0.0)",
-          "@types/node (^20.0.0)"
+          "gray-matter (^4.0.3)",
+          "@vscode/test-electron (^2.3.0)",
+          "mocha (^10.0.0)",
+          "typescript (^5.4.0)",
+          "@types/vscode (^1.74.0)",
+          "@typescript-eslint/eslint-plugin (^6.0.0)",
+          "@typescript-eslint/parser (^6.0.0)",
+          "eslint (^8.0.0)"
         ],
         "buildTools": [
           "github-actions (cd)",
@@ -148,7 +146,10 @@
           "Git ignore configured"
         ],
         "architecture": [
-          "src/ structure"
+          "VS Code extension architecture (providers + commands)",
+          "src/ structure with 6 subdirectories (commands, providers, scanner, services, types...)",
+          "Service layer (business logic encapsulation)",
+          "Utility functions (helper/shared functions)"
         ],
         "configuration": [
           ".gitignore",
@@ -156,8 +157,202 @@
         ],
         "documentation": [
           "README.md",
+          "CHANGELOG.md",
           "LICENSE"
-        ]
+        ],
+        "security": {
+          "authFrameworks": [],
+          "encryption": [],
+          "vulnerabilityScanning": [
+            "Dependabot"
+          ],
+          "secretsManagement": []
+        },
+        "projectMetrics": {
+          "estimatedSize": "medium",
+          "complexity": "medium",
+          "filesAnalyzed": 137,
+          "lastAnalyzed": "2025-11-09T19:39:44.885Z"
+        },
+        "identity": {
+          "projectType": "vscode-extension",
+          "domain": "general",
+          "primaryLanguage": "TypeScript",
+          "maturityLevel": "active-development"
+        },
+        "capabilities": {
+          "description": "Visualize and manage Cursor project rules and state with enhanced detection",
+          "primaryFeatures": [
+            "Rules Visualization: Tree view of all .cursor/rules directories",
+            "Rule Viewer: Markdown preview with syntax highlighting",
+            "Rule Editor: Create/edit rules with template scaffolding",
+            "Auto-refresh: Watch file system for changes",
+            "Rule Management: Visual indicators and management tools for rules"
+          ],
+          "dataFormats": [
+            "JSON",
+            "YAML",
+            "MDC"
+          ]
+        },
+        "enhancedArchitecture": {
+          "style": "layered",
+          "organization": "service-oriented",
+          "patterns": [
+            "Provider Pattern (data/service providers)",
+            "Command Pattern (encapsulated operations with multiple command handlers)",
+            "Service Layer Pattern (business logic encapsulation)"
+          ],
+          "entryPoints": [
+            "src/extension.ts"
+          ]
+        },
+        "enhancedDependencies": {
+          "byPurpose": {
+            "parsing": [
+              {
+                "name": "yaml",
+                "version": "^2.3.0",
+                "purpose": "Parse/stringify YAML",
+                "critical": true
+              },
+              {
+                "name": "gray-matter",
+                "version": "^4.0.3",
+                "purpose": "Parse YAML frontmatter",
+                "critical": true
+              }
+            ],
+            "testing": [
+              {
+                "name": "@vscode/test-electron",
+                "version": "^2.3.0",
+                "purpose": "VS Code extension testing",
+                "critical": false
+              },
+              {
+                "name": "mocha",
+                "version": "^10.0.0",
+                "purpose": "Test runner",
+                "critical": false
+              }
+            ],
+            "build": [
+              {
+                "name": "typescript",
+                "version": "^5.4.0",
+                "purpose": "Type checking and compilation",
+                "critical": true
+              }
+            ],
+            "platform": [
+              {
+                "name": "@types/vscode",
+                "version": "^1.74.0",
+                "purpose": "VS Code API types",
+                "critical": true
+              }
+            ],
+            "code-quality": [
+              {
+                "name": "@typescript-eslint/eslint-plugin",
+                "version": "^6.0.0",
+                "purpose": "TypeScript ESLint rules",
+                "critical": false
+              },
+              {
+                "name": "@typescript-eslint/parser",
+                "version": "^6.0.0",
+                "purpose": "TypeScript ESLint parser",
+                "critical": false
+              },
+              {
+                "name": "eslint",
+                "version": "^8.0.0",
+                "purpose": "Code linting",
+                "critical": false
+              }
+            ],
+            "utility": [],
+            "http": [],
+            "framework": []
+          },
+          "criticalPath": [
+            "yaml",
+            "gray-matter"
+          ],
+          "devOnly": [
+            "@types/mocha",
+            "@types/node",
+            "@types/vscode",
+            "@typescript-eslint/eslint-plugin",
+            "@typescript-eslint/parser",
+            "@vscode/test-electron",
+            "eslint",
+            "glob",
+            "mocha",
+            "nyc",
+            "ts-node",
+            "typescript"
+          ]
+        },
+        "platformContext": {
+          "vscode": {
+            "extensionType": "productivity",
+            "category": "Other",
+            "minVersion": "^1.74.0",
+            "activation": [
+              "onView:projectRulesExplorer",
+              "onCommand:projectRules.addProject",
+              "onCommand:projectRules.refresh",
+              "onCommand:projectRules.listProjects",
+              "onCommand:projectRules.exportForAgent"
+            ],
+            "contributes": {
+              "commands": 18,
+              "views": 1,
+              "configuration": false,
+              "menus": true,
+              "languages": 0,
+              "themes": 0
+            },
+            "capabilities": [
+              "Provides custom commands",
+              "Adds custom views to sidebar",
+              "Adds custom view containers",
+              "Context menus"
+            ]
+          }
+        },
+        "agentGuidance": {
+          "suggestedApproach": "This is a VS Code extension. Modifications should maintain VS Code API compatibility, properly dispose resources, and follow extension development best practices. Use vscode.workspace.fs for file operations and register all disposables.",
+          "criticalFiles": [
+            "package.json",
+            "src/extension.ts",
+            "src/extension.ts",
+            "src/providers/**/*.ts",
+            "package.json (contributes section)",
+            "test/**/*.test.ts"
+          ],
+          "commonTasks": [
+            "Adding new commands",
+            "Enhancing tree view functionality",
+            "Adding configuration options",
+            "Implementing context menus",
+            "Writing tests",
+            "Enhancing existing features"
+          ],
+          "watchOuts": [
+            "Dispose resources properly in deactivate()",
+            "Use vscode.workspace.fs for file operations",
+            "Test with various workspace configurations",
+            "Register all commands in package.json",
+            "Avoid blocking the main thread",
+            "Critical dependencies: yaml, gray-matter - changes may break core functionality",
+            "Be cautious with workspace.fs.readFile - validate paths to prevent directory traversal",
+            "Sanitize user inputs before displaying in UI"
+          ]
+        }
       }
     }
   ]

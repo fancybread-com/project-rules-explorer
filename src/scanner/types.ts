@@ -169,3 +169,142 @@ export const CodeQualityPatterns = {
 	}
 };
 
+/**
+ * Enhanced project state - extends basic state with additional detection categories
+ */
+export interface InfrastructureInfo {
+	databases: string[];
+	cache: string[];
+	queues: string[];
+	storage: string[];
+	messaging: string[];
+}
+
+export interface SecurityInfo {
+	authFrameworks: string[];
+	encryption: string[];
+	vulnerabilityScanning: string[];
+	secretsManagement: string[];
+}
+
+export interface APIInfo {
+	type: string[];
+	documentation: string[];
+	authentication: string[];
+	versioning: string[];
+}
+
+export interface DeploymentInfo {
+	environments: string[];
+	platforms: string[];
+	orchestration: string[];
+}
+
+export interface ProjectMetrics {
+	estimatedSize: 'small' | 'medium' | 'large';
+	complexity: 'low' | 'medium' | 'high';
+	filesAnalyzed: number;
+	lastAnalyzed: string;
+}
+
+/**
+ * Database detection patterns
+ */
+export const DatabasePatterns = {
+	postgres: ['pg', 'postgres', 'pg-promise', 'postgresql', 'psycopg2', 'asyncpg'],
+	mysql: ['mysql', 'mysql2', 'mariadb', 'pymysql', 'mysqlclient'],
+	mongodb: ['mongodb', 'mongoose', '@azure/cosmos', 'pymongo', 'motor'],
+	redis: ['redis', 'ioredis', '@azure/redis-cache', 'redis-py', 'aioredis'],
+	sqlite: ['sqlite', 'sqlite3', 'better-sqlite3'],
+	sqlserver: ['mssql', 'tedious', 'pyodbc', 'pymssql'],
+	oracle: ['oracledb', 'cx_oracle'],
+	cassandra: ['cassandra-driver', 'cassandra'],
+	elasticsearch: ['@elastic/elasticsearch', 'elasticsearch'],
+	dynamodb: ['@aws-sdk/client-dynamodb', 'dynamodb', 'boto3']
+};
+
+/**
+ * ORM patterns
+ */
+export const ORMPatterns = {
+	prisma: ['prisma', '@prisma/client'],
+	sequelize: ['sequelize'],
+	typeorm: ['typeorm'],
+	mongoose: ['mongoose'],
+	sqlalchemy: ['sqlalchemy'],
+	django: ['django'],
+	hibernate: ['hibernate']
+};
+
+/**
+ * Queue/Messaging patterns
+ */
+export const QueuePatterns = {
+	rabbitmq: ['amqplib', 'rabbitmq', 'pika', 'aio-pika'],
+	kafka: ['kafkajs', 'kafka-python', 'confluent-kafka'],
+	sqs: ['@aws-sdk/client-sqs', 'boto3'],
+	azureServiceBus: ['@azure/service-bus'],
+	googlePubSub: ['@google-cloud/pubsub'],
+	redis: ['bull', 'bee-queue', 'rq', 'celery']
+};
+
+/**
+ * API patterns
+ */
+export const APIPatterns = {
+	rest: ['express', 'fastify', 'koa', 'flask', 'fastapi', 'django-rest-framework'],
+	graphql: ['graphql', 'apollo-server', 'apollo-client', 'graphene', '@nestjs/graphql'],
+	grpc: ['@grpc/grpc-js', 'grpc', 'grpcio'],
+	websocket: ['ws', 'socket.io', 'websockets', 'socketio'],
+	swagger: ['swagger-ui', 'swagger-jsdoc', '@nestjs/swagger', 'drf-yasg'],
+	openapi: ['openapi', '@openapi-generator']
+};
+
+/**
+ * Authentication patterns
+ */
+export const AuthPatterns = {
+	jwt: ['jsonwebtoken', 'pyjwt', 'jose'],
+	oauth: ['passport-oauth', 'authlib', 'oauth2client'],
+	passport: ['passport'],
+	auth0: ['auth0', '@auth0/'],
+	okta: ['@okta/'],
+	firebase: ['firebase-auth', 'firebase-admin'],
+	cognito: ['@aws-sdk/client-cognito', 'boto3']
+};
+
+/**
+ * Vulnerability scanning patterns
+ */
+export const VulnerabilityScanningPatterns = {
+	snyk: ['snyk'],
+	dependabot: ['dependabot'],
+	npm: ['npm audit'],
+	pip: ['safety', 'pip-audit'],
+	trivy: ['trivy'],
+	sonarqube: ['sonarqube', 'sonar-scanner']
+};
+
+/**
+ * Secrets management patterns
+ */
+export const SecretsPatterns = {
+	vault: ['vault', '@azure/keyvault'],
+	dotenv: ['.env', 'dotenv', 'python-dotenv'],
+	awsSecrets: ['@aws-sdk/client-secrets-manager'],
+	gcpSecrets: ['@google-cloud/secret-manager']
+};
+
+/**
+ * Container orchestration patterns
+ */
+export const OrchestrationPatterns = {
+	kubernetes: ['kubernetes', 'kubectl', 'k8s'],
+	docker: ['docker', 'dockerfile', 'docker-compose'],
+	helm: ['helm'],
+	nomad: ['nomad'],
+	ecs: ['ecs', '@aws-sdk/client-ecs'],
+	aks: ['@azure/arm-containerservice'],
+	gke: ['@google-cloud/container']
+};
+
