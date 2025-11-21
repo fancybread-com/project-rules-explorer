@@ -1,218 +1,253 @@
 # Project Rules Explorer
 
-A VS Code extension for visualizing and managing Cursor rules and project state. This extension provides a tree view of all `.cursor/rules` directories in your workspace, allowing you to easily view, create, edit, and manage your Cursor rules.
+**Visualize and manage Cursor project rules with intelligent state detection**
 
-## Features
+A VS Code extension that provides a comprehensive view of your Cursor rules and automatically analyzes your project structure, dependencies, and architecture to help AI agents better understand your codebase.
 
-- **Rules Visualization**: Tree view of all `.cursor/rules` directories
-- **Rule Viewer**: Markdown preview with syntax highlighting
-- **Rule Editor**: Create/edit rules with template scaffolding
-- **Auto-refresh**: Watch file system for changes
-- **Rule Management**: Visual indicators and management tools for rules
-- **Enhanced State Detection** (v0.4.0):
-  - **Database Detection**: PostgreSQL, MySQL, MongoDB, Redis, and more
-  - **Security Analysis**: Auth frameworks, encryption, vulnerability scanning
-  - **API Architecture**: REST, GraphQL, gRPC, WebSocket detection
-  - **Deployment Info**: Docker, Kubernetes, cloud platforms
-  - **Project Metrics**: Size, complexity, and file analysis
-- **Multi-Project Support**: Add and manage multiple projects to reference their rules
-- **Agent Export**: Export all projects, rules, and state to `.cursor/project-rules-export.json` for agent consumption
+## Key Features
 
-## Installation
+### **Rules Management**
+- Browse all `.cursor/rules` files in an organized tree view
+- Create, edit, and delete rules with a visual interface
+- Copy and paste rules between projects
+- Auto-refresh when files change
+- Markdown preview with syntax highlighting
 
-1. Install the extension from the VS Code marketplace
-2. Open a workspace with `.cursor/rules` directories
-3. The "Project Rules" view will appear in the Explorer sidebar
+### **Intelligent State Detection**
+- Automatically analyzes your project's architecture and patterns
+- Detects dependencies and explains their purpose
+- Identifies frameworks, databases, and infrastructure
+- Provides AI-optimized project insights
+- Exports comprehensive project context for agents
 
-> **Note**: The CD pipeline for marketplace deployment is currently disabled. The extension is in development and not yet ready for public release.
+### **Multi-Project Support**
+- Manage multiple projects from a single workspace
+- Reference rules across different codebases
+- Export all projects and rules together
+- Switch between projects easily
 
-## Usage
+## Getting Started
 
-### Viewing Rules
-- Open the "Project Rules" view in the Explorer sidebar
-- Browse through your rules organized by directory
-- Click on any rule to view its content in a markdown preview
+### Installation
+
+1. Install from the VS Code marketplace (search for "Project Rules Explorer")
+2. Open a workspace containing a `.cursor/rules` directory
+3. The extension will automatically activate and display in the sidebar
+
+### Quick Start
+
+1. **View Rules**: Click the Project Rules icon in the sidebar to see all your Cursor rules
+2. **Create a Rule**: Click the `+` button or right-click in the Rules section
+3. **Export for Agents**: Click the Export button to generate `.cursor/project-rules-export.json`
+
+## Usage Guide
 
 ### Managing Rules
-- Use the context menu on rules to edit, copy, or delete them
-- Click the "+" button to create new rules
-- Use the refresh button to manually update the view
 
-### Exporting for Agent Consumption
-- Click the "Export" button in the Project Rules Explorer view
-- This creates `.cursor/project-rules-export.json` with all rules and state from all projects
-- Agents in Cursor can now read this file to understand all your project rules across multiple projects
+#### **Viewing Rules**
+- Click any rule to open it in a markdown preview
+- Rules are organized by directory structure
+- File icons indicate rule types (security, testing, performance, etc.)
 
-### Enhanced State Detection (v0.4.0)
+#### **Creating Rules**
+1. Click the `+` button in the Rules section
+2. Enter a filename (e.g., `testing.mdc`)
+3. The rule file is created with basic frontmatter
+4. Edit the rule content and save
 
-The extension now provides **intelligent project analysis** designed specifically for AI agents, with comprehensive understanding of what your project is, how it works, and what agents should know when working on it.
+#### **Editing Rules**
+- Click a rule to view it
+- Click the edit icon to modify
+- Use the context menu for more options (copy, rename, delete)
 
-#### Phase 1: Project Identity & Purpose
-**What is this project?**
-- **Project Type Detection**: Automatically identifies VS Code extensions, web apps, CLI tools, libraries, API servers, and more
-- **Domain Classification**: Categorizes projects (developer-tools, ui-components, backend-services, frontend-applications, testing-tools, cli-tools, libraries, data-tools)
-- **Primary Language**: Detects TypeScript, JavaScript, Python, C#, Go, Rust, Java, etc.
-- **Maturity Level**: Assesses project stage (prototype, active-development, beta, stable, production, mature)
+#### **Organizing Rules**
+- Rules in `.cursor/rules/` are always-apply rules
+- Create subdirectories for organization (e.g., `.cursor/rules/security/`)
+- Use file references like `@service-template.ts` in rule content
 
-**What can this project do?**
-- **Description**: Extracts from README.md and package.json
-- **Primary Features**: Automatically extracts feature list from README
-- **Data Formats**: Detects MDC, YAML, JSON, Markdown, CSV, XML, TOML, Protocol Buffers, GraphQL support
+### Project State Detection
 
-#### Phase 2: Enhanced Dependencies
-**Why do dependencies exist?**
-- **Purpose-Based Categorization**: Groups dependencies by their purpose:
-  - **Parsing**: gray-matter, yaml, marked, csv-parser, xml2js
-  - **Testing**: mocha, jest, vitest, cypress, playwright
-  - **Build**: TypeScript, webpack, vite, rollup, esbuild
-  - **Platform**: VS Code API, React, Vue, Angular
-  - **Code Quality**: ESLint, Prettier, TypeScript
-  - **Utility**: lodash, date-fns, axios
-  - **HTTP**: axios, node-fetch, got
-  - **Framework**: Express, Fastify, React, Vue
-- **Critical Path**: Identifies dependencies essential to core functionality
-- **Development-Only**: Separates dev dependencies from production
+The extension automatically analyzes your project to help AI agents understand:
 
-#### Phase 3: Platform-Specific Intelligence
-**Deep VS Code Extension Analysis**:
-- **Extension Type**: productivity, language-support, theme, debugger, snippets
-- **Contribution Points**: Commands, views, configuration, menus, languages, themes
-- **Capabilities**: Inferred from package.json (e.g., "Adds custom views to sidebar", "User-configurable settings")
-- **Minimum VS Code Version**: Compatibility tracking
-- **Activation Events**: When the extension activates
+#### **Project Identity**
+- **Type**: VS Code extension, web app, CLI tool, library, API server, etc.
+- **Language**: Primary programming language and frameworks
+- **Purpose**: Extracted from README and package.json
+- **Maturity**: Development stage and stability
 
-#### Phase 4: Architecture Detection
-**How is it structured?**
-- **Architecture Style**: layered, modular, component-oriented, MVC
-- **Organization**: src-based, feature-based, service-oriented
-- **Design Patterns**: Automatically detects:
-  - Provider Pattern, Command Pattern, Factory Pattern
-  - Singleton, Observer, Adapter, Builder, Strategy
-  - Middleware Pattern, Decorator Pattern
-- **Entry Points**: Identifies src/extension.ts, src/index.ts, src/main.ts, etc.
+#### **Dependencies**
+Instead of just listing dependencies, the extension explains **why** each one exists:
 
-#### Phase 5: AI Agent Guidance
-**Context-aware suggestions for AI agents**:
-- **Suggested Approach**: Custom guidance based on project type
-  - *VS Code Extension*: "Modifications should maintain VS Code API compatibility, properly dispose resources..."
-  - *Web App*: "Consider component reusability, state management patterns..."
-  - *Library*: "Maintain backwards compatibility, consider API stability..."
-- **Critical Files**: Identifies files that are essential to understand (package.json, entry points, providers, etc.)
-- **Common Tasks**: Suggests typical development tasks for this project type
-- **Watch-Outs**: Project-specific warnings and best practices
-  - *VS Code*: "Dispose resources properly in deactivate()", "Use vscode.workspace.fs for file operations"
-  - *Production projects*: "Maintain backwards compatibility", "Update CHANGELOG for all changes"
+- **Parsing**: `gray-matter` - Parse YAML frontmatter
+- **Testing**: `mocha` - Test runner
+- **Build**: `typescript` - Type checking and compilation
+- **Critical Path**: Dependencies essential to core functionality
 
-#### Database & Infrastructure Detection
-- **Databases**: PostgreSQL, MySQL, MongoDB, Redis, SQLite, SQL Server, Elasticsearch, DynamoDB
-- **ORMs**: Prisma, Sequelize, TypeORM, Mongoose, SQLAlchemy, Django ORM
-- **Message Queues**: RabbitMQ, Apache Kafka, Amazon SQS, Azure Service Bus, Google Pub/Sub
+#### **Architecture**
+Automatically detects design patterns and structure:
 
-#### Security Analysis
-- **Authentication**: JWT, Passport.js, Auth0, Okta, Firebase Auth, AWS Cognito
+- **Patterns**: Provider Pattern, Command Pattern, Factory Pattern, etc.
+- **Style**: Layered, modular, component-oriented, MVC
+- **Organization**: Service-oriented, feature-based, src-based
+- **Entry Points**: Main application files
+
+#### **Infrastructure**
+Identifies your technology stack:
+
+- **Databases**: PostgreSQL, MySQL, MongoDB, Redis, SQLite
+- **Message Queues**: RabbitMQ, Kafka, SQS
+- **APIs**: REST, GraphQL, gRPC, WebSocket
+- **Deployment**: Docker, Kubernetes, cloud platforms
+
+#### **Security**
+Analyzes security implementations:
+
+- **Authentication**: JWT, OAuth, Passport, Auth0, Firebase
+- **Encryption**: Libraries and patterns used
 - **Vulnerability Scanning**: Snyk, Dependabot
-- **Secrets Management**: dotenv, HashiCorp Vault, AWS Secrets Manager, GCP Secret Manager
+- **Secrets Management**: Vault, environment variables
 
-#### API Architecture & Deployment
-- **API Types**: REST, GraphQL, gRPC, WebSocket
-- **Documentation**: Swagger/OpenAPI, GraphQL Schema
-- **Containers**: Docker, Docker Compose
-- **Orchestration**: Kubernetes, Helm
-- **Platforms**: AWS, Azure, GCP, Vercel, Netlify, Heroku
+#### **AI Agent Guidance**
+Provides context-aware suggestions:
 
-#### Project Metrics
-- **Size**: Small (<50 files), Medium (50-200 files), Large (>200 files)
-- **Complexity**: Low, Medium, High based on structure, testing, CI/CD, languages
-- **File Counts**: Detailed analysis of source files
-- **Timestamp**: Last analyzed date/time
+- **Approach**: Best practices for this project type
+- **Critical Files**: Files agents should understand first
+- **Common Tasks**: Typical development operations
+- **Watch-Outs**: Project-specific warnings and gotchas
 
-### Export Format
+### Exporting for AI Agents
 
-All detected information is automatically included in `.cursor/project-rules-export.json` with the following structure:
+The Export feature creates a comprehensive JSON file that AI agents can read:
 
-```json
-{
-  "identity": {
-    "projectType": "vscode-extension",
-    "domain": "developer-tools",
-    "primaryLanguage": "TypeScript",
-    "maturityLevel": "active-development"
-  },
-  "capabilities": {
-    "description": "VS Code extension for managing project rules...",
-    "primaryFeatures": ["Parse MDC files", "Display rules in tree view", ...],
-    "dataFormats": ["MDC", "YAML", "JSON"]
-  },
-  "enhancedDependencies": {
-    "byPurpose": {
-      "parsing": [{"name": "gray-matter", "purpose": "Parse YAML frontmatter", ...}],
-      "testing": [...],
-      "platform": [...]
-    },
-    "criticalPath": ["gray-matter", "yaml"],
-    "devOnly": ["mocha", "eslint"]
-  },
-  "platformContext": {
-    "vscode": {
-      "extensionType": "productivity",
-      "capabilities": ["Provides custom commands", "Adds custom views"],
-      ...
-    }
-  },
-  "enhancedArchitecture": {
-    "style": "layered",
-    "patterns": ["Provider Pattern", "Command Pattern"],
-    "entryPoints": ["src/extension.ts"]
-  },
-  "agentGuidance": {
-    "suggestedApproach": "This is a VS Code extension. Modifications should...",
-    "criticalFiles": ["package.json", "src/extension.ts", ...],
-    "commonTasks": ["Adding new commands", "Enhancing tree view", ...],
-    "watchOuts": ["Dispose resources properly", "Use vscode.workspace.fs", ...]
-  }
-}
-```
+1. Click the **Export** button in the tree view
+2. File is saved to `.cursor/project-rules-export.json`
+3. AI agents automatically have access to:
+   - All project rules (always-apply and conditional)
+   - Project identity and capabilities
+   - Dependency purposes and critical paths
+   - Architecture patterns and design decisions
+   - Security configurations
+   - Agent guidance and best practices
 
-This comprehensive analysis helps AI agents understand your project deeply and provide more contextually appropriate suggestions.
+**What agents learn:**
+- What your project is and what it does
+- Why dependencies exist (not just that they exist)
+- What architecture patterns you're using
+- What files are critical to understand
+- What to watch out for when making changes
+
+### Multi-Project Workflow
+
+#### **Adding Projects**
+1. Click the `+` button in the tree view header
+2. Choose "Add external project" or "Add current workspace"
+3. Select the project directory
+4. The project appears in your tree view
+
+#### **Managing Projects**
+- Expand any project to see its rules and state
+- Edit or remove projects using context menu
+- Export all projects together for cross-project context
+
+#### **Use Cases**
+- Reference shared rules across microservices
+- Maintain consistent standards across teams
+- Compare architectures between projects
+- Export multi-repo context for agents
 
 ## MDC Format
 
-This extension works with Cursor's MDC (Markdown with Cursor) format, which includes:
-- YAML frontmatter with metadata
-- Markdown content body
-- Support for file references (e.g., `@service-template.ts`)
+Rules use Cursor's MDC (Markdown with Cursor) format:
 
-## Development
+```markdown
+---
+description: Security best practices
+globs:
+  - "**/*.ts"
+  - "**/*.js"
+alwaysApply: true
+---
 
-```bash
-# Install dependencies
-npm install
+# Security Guidelines
 
-# Compile TypeScript
-npm run compile
+Always validate user input before processing...
 
-# Watch for changes
-npm run watch
+## File References
 
-# Run tests
-npm test
+You can reference code files:
+- Use @service-template.ts for service examples
+- Follow patterns in @auth-middleware.ts
 ```
 
-## Deployment
+**Frontmatter fields:**
+- `description`: Brief explanation of the rule
+- `globs`: File patterns this rule applies to
+- `alwaysApply`: Whether rule is always active
 
-The CD pipeline for marketplace deployment is currently **disabled**. To enable it when ready for public release:
+## Viewing Project State
 
-1. **Configure Marketplace Secrets**:
-   - Add `VSCE_PAT` secret to GitHub repository settings
-   - Create a Personal Access Token with marketplace publishing permissions
+### **State Tree View**
+Click any state section to see detailed information:
 
-2. **Enable CD Pipeline**:
-   - Uncomment the workflow triggers in `.github/workflows/cd.yml`
-   - Remove the `if: false` condition from the disabled job
+- **Project Identity**: Type, domain, language, maturity
+- **Capabilities**: Features and data formats
+- **Dependencies by Purpose**: Categorized with explanations
+- **Architecture**: Patterns, style, entry points
+- **VS Code Platform**: Extension-specific details (if applicable)
+- **Agent Guidance**: Best practices and warnings
+- **Technology Stack**: Languages and frameworks
+- **Development Environment**: Build, test, quality tools
+- **Project Structure**: Architecture and configuration
 
-3. **Test Deployment**:
-   - Create a release to trigger marketplace publishing
-   - Verify extension appears in VS Code marketplace
+### **View State Command**
+Run "Project Rules: View State" from the command palette to see a comprehensive markdown report of all project analysis.
+
+## Tips & Best practices
+
+### **Organizing Rules**
+- Keep always-apply rules in the root `.cursor/rules/` directory
+- Group related rules in subdirectories (security, testing, performance)
+- Use clear, descriptive filenames
+- Add comprehensive descriptions in frontmatter
+
+### **Writing Effective Rules**
+- Be specific about when rules apply (use globs)
+- Include examples and code references
+- Explain the "why" not just the "what"
+- Reference actual files in your project with @filename
+
+### **Using State Detection**
+- Export before starting major refactors
+- Share exports when onboarding new team members
+- Use agent guidance to understand critical paths
+- Review architecture patterns for consistency
+
+### **Multi-Project Setup**
+- Add related projects for cross-repo context
+- Export all projects for full system understanding
+- Update projects when dependencies change
+- Remove stale projects to keep exports clean
+
+## Troubleshooting
+
+**Rules not appearing?**
+- Ensure `.cursor/rules/` directory exists
+- Check that files have `.mdc` or `.md` extension
+- Click refresh button to force update
+
+**State detection incomplete?**
+- Run "Project Rules: Scan Project State" command
+- Ensure package.json exists for dependency analysis
+- Check that project structure follows conventions
+
+**Export not working?**
+- Verify workspace has write permissions
+- Check `.cursor/` directory exists
+- Look for errors in Output panel (View → Output → Project Rules Explorer)
+
+## Contributing
+
+Found a bug or have a feature request? Please open an issue on GitHub.
 
 ## License
 
