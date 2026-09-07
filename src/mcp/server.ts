@@ -240,8 +240,7 @@ export function createServer(workspacePath: string, projects?: ProjectEntry[]): 
 		},
 		{
 			capabilities: {
-				tools: {},
-				resources: {}
+				tools: {}
 			}
 		}
 	);
@@ -540,7 +539,7 @@ export function toBackendParams(args: unknown): Record<string, unknown> {
 export function createBridgeServer(port: number): McpServer {
 	const server = new McpServer(
 		{ name: 'ace-mcp', version: '1.0.0' },
-		{ capabilities: { tools: {}, resources: {} } }
+		{ capabilities: { tools: {} } }
 	);
 	for (const t of BRIDGE_TOOLS) {
 		server.tool(t.name, t.description, t.inputSchema as any, async (args: any) => {
@@ -586,8 +585,10 @@ async function main(): Promise<void> {
 	try {
 		await fs.access(primaryPath);
 	} catch {
-		console.error(`Workspace path does not exist: ${primaryPath}`);
-		process.exit(1);
+		// Non-fatal: scanner core functions already return [] for missing directories.
+		// Exiting here would kill the whole MCP connection before it can answer the
+		// client's handshake, making every tool disappear over one stale project path.
+		console.error(`Warning: workspace path does not exist: ${primaryPath}`);
 	}
 	const server = createServer(workspacePath, projects);
 	const transport = new StdioServerTransport(process.stdin!, process.stdout!);

@@ -79,6 +79,35 @@ describe('McpRegistrationService.isRegistered()', () => {
 		assert.strictEqual(await svc.isRegistered(), false);
 	});
 
+	it('returns false when the registered versioned path is an older version than the running extension', async () => {
+		writeTmpClaudeJson({
+			mcpServers: {
+				ace: {
+					command: 'node',
+					args: ['/Users/paul/.vscode/extensions/fancy-bread.agent-context-explorer-1.3.3/out/mcp/server.js'],
+					type: 'stdio'
+				}
+			}
+		});
+		const svc = new McpRegistrationService('/Users/paul/.vscode/extensions/fancy-bread.agent-context-explorer-1.3.4', tmpDir);
+		assert.strictEqual(await svc.isRegistered(), false, 'a version bump must invalidate the stale registration');
+	});
+
+	it('returns true when the registered path is the same version installed under a different editor (Cursor vs VS Code)', async () => {
+		writeTmpClaudeJson({
+			mcpServers: {
+				ace: {
+					command: 'node',
+					args: ['/Users/paul/.vscode/extensions/fancy-bread.agent-context-explorer-1.3.4/out/mcp/server.js'],
+					type: 'stdio'
+				}
+			}
+		});
+		// Cursor installs the same version under a differently-named extensions root, with a "-universal" suffix.
+		const svc = new McpRegistrationService('/Users/paul/.cursor/extensions/fancy-bread.agent-context-explorer-1.3.4-universal', tmpDir);
+		assert.strictEqual(await svc.isRegistered(), true, 'same version registered from another editor must not be treated as stale');
+	});
+
 	it('returns false when file does not exist', async () => {
 		// Ensure file does not exist
 		cleanUp(path.join(tmpDir, '.claude.json'));
@@ -287,6 +316,20 @@ describe('McpRegistrationService.promptIfNeeded()', () => {
 		vscodeStub.window.showInformationMessage = () => undefined;
 		vscodeStub.window.showErrorMessage = () => {};
 		vscodeStub.workspace.workspaceFolders = undefined;
+		vscodeStub.env.appName = 'Visual Studio Code';
+	});
+
+	it('does not show prompt when the host editor is Cursor, even when ACE is unregistered', async () => {
+		cleanUp(path.join(tmpDir, '.claude.json'));
+		vscodeStub.env.appName = 'Cursor';
+		let promptShown = false;
+		vscodeStub.window.showInformationMessage = async () => {
+			promptShown = true;
+			return 'Not now';
+		};
+		const svc = new McpRegistrationService(extPath, tmpDir);
+		await svc.promptIfNeeded();
+		assert.strictEqual(promptShown, false, 'Claude Code setup prompt is VS-Code-specific; Cursor gets ACE tools natively');
 	});
 
 	it('shows prompt when ACE is not registered', async () => {

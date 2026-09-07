@@ -189,6 +189,8 @@ class RelativePattern {
 
 const FileType = { Unknown: 0, File: 1, Directory: 2, SymbolicLink: 64 };
 
+const env = { appName: 'Visual Studio Code' };
+
 const commands = {
 	registerCommand: () => ({ dispose: () => {} }),
 	executeCommand: async () => {}
@@ -232,5 +234,6 @@ module.exports = {
 	FileType,
 	commands,
 	window,
+	env,
 	__overrides: overrides
 };

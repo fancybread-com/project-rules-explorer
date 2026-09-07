@@ -28,6 +28,7 @@
 		"agentic"
 	],
 	"activationEvents": [
+		"onStartupFinished",
 		"onView:aceProjects",
 		"onView:aceAgents"
 	],
