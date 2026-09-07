@@ -24,6 +24,31 @@ const ACE_SERVER_KEY = 'ace';
 /** Relative path to the ACE MCP server script within extensionPath. */
 const ACE_MCP_SCRIPT_RELATIVE = path.join('out', 'mcp', 'server.js');
 
+/**
+ * Matches the extension version folder segment immediately before `out/mcp/server.js`,
+ * e.g. `.../fancy-bread.agent-context-explorer-1.3.4/out/mcp/server.js` (VS Code) or
+ * `.../fancy-bread.agent-context-explorer-1.3.4-universal/out/mcp/server.js` (Cursor).
+ * Captures the semver so paths that differ only in editor-specific install directory
+ * naming (Cursor's "-universal" suffix, a different extensions root, etc.) can still be
+ * recognized as the same installed version.
+ */
+const VERSION_SEGMENT_RE = /(\d+\.\d+\.\d+)(?:-[A-Za-z0-9]+)?\/out\/mcp\/server\.js$/;
+
+/** Extracts the ACE extension version from a server.js path, or undefined if not in the expected form. */
+function extractAceVersion(scriptPath: string): string | undefined {
+	return scriptPath.replace(/\\/g, '/').match(VERSION_SEGMENT_RE)?.[1];
+}
+
+/**
+ * True when running inside Cursor rather than VS Code. Cursor already gets ACE tools
+ * automatically through its own MCP server provider registration (see mcpServerProvider.ts's
+ * syncCursorRegistration) — the ~/.claude.json entry this service manages is for the separate
+ * Claude Code CLI, so the setup prompt is VS-Code-specific and would be redundant noise in Cursor.
+ */
+function isCursorHost(): boolean {
+	return /cursor/i.test(vscode.env.appName ?? '');
+}
+
 export class McpRegistrationService {
 	private promptShownThisSession = false;
 
@@ -48,6 +73,23 @@ export class McpRegistrationService {
 
 	private get aceMcpScriptPath(): string {
 		return path.join(this.extensionPath, ACE_MCP_SCRIPT_RELATIVE);
+	}
+
+	/**
+	 * True when `registeredPath` points at the same installed ACE version as the
+	 * currently running extension — matched by version number when both paths carry
+	 * one (so VS Code and Cursor installs of the same version match each other despite
+	 * different extensions roots / the "-universal" suffix Cursor adds), falling back to
+	 * exact path equality when either path isn't in the standard versioned-folder form
+	 * (e.g. running from source during development).
+	 */
+	private matchesInstalledScript(registeredPath: string): boolean {
+		const currentVersion = extractAceVersion(this.aceMcpScriptPath);
+		const registeredVersion = extractAceVersion(registeredPath);
+		if (currentVersion !== undefined && registeredVersion !== undefined) {
+			return currentVersion === registeredVersion;
+		}
+		return registeredPath === this.aceMcpScriptPath;
 	}
 
 	/**
@@ -83,9 +125,11 @@ export class McpRegistrationService {
 
 	/**
 	 * Returns true when the ACE MCP entry exists in ~/.claude.json, the registered args[0] path
-	 * matches the current extension's script path, and the registered ACE_PROJECT_PATHS still
-	 * covers the current workspace + added projects.
-	 * Returns false if the entry is absent, the path differs, or the project list has drifted
+	 * matches the current extension's installed version (see matchesInstalledScript — this is
+	 * editor-agnostic, so a registration made from VS Code still counts when checked from Cursor
+	 * and vice versa), and the registered ACE_PROJECT_PATHS still covers the current workspace +
+	 * added projects.
+	 * Returns false if the entry is absent, the version differs, or the project list has drifted
 	 * (stale). Returns false on any read / parse error (safe default → prompt shown).
 	 */
 	async isRegistered(): Promise<boolean> {
@@ -110,8 +154,8 @@ export class McpRegistrationService {
 			if (!Array.isArray(args) || args.length === 0) {
 				return false;
 			}
-			// Check that the registered path matches the current extension path
-			if (args[0] !== this.aceMcpScriptPath) {
+			// Check that the registered path matches the current extension's installed version
+			if (typeof args[0] !== 'string' || !this.matchesInstalledScript(args[0])) {
 				return false;
 			}
 			const currentProjects = await this.currentProjectList();
@@ -178,6 +222,7 @@ export class McpRegistrationService {
 	/**
 	 * Shows a notification prompt if:
 	 * - Claude Code is detected (~/  .claude/ directory exists — caller's responsibility)
+	 * - The host editor is not Cursor (Cursor gets ACE tools natively; see isCursorHost)
 	 * - ACE is not registered or the registration is stale
 	 * - The prompt has not already been shown this session
 	 *
@@ -188,7 +233,7 @@ export class McpRegistrationService {
 	 *   can refresh the Agents view.
 	 */
 	async promptIfNeeded(onRefresh?: () => void): Promise<void> {
-		if (this.promptShownThisSession) {
+		if (this.promptShownThisSession || isCursorHost()) {
 			return;
 		}
 
