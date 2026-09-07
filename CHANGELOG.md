@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.5] - 2026-09-07
+
+### Fixed
+- ACE registration in `~/.claude.json` now matches by extension version instead of exact script path, so the same install no longer looks "unregistered" when checked from a different editor (VS Code vs. Cursor) than it was set up from
+- Standalone MCP server no longer exits fatally when one project's path is stale or missing — it logs a warning and keeps serving tools for every other project instead of dropping to zero tools
+- MCP server registration no longer depends on the ACE sidebar being opened — added `onStartupFinished` so the extension (and its MCP server) activates on every window load
+- Removed an advertised-but-unimplemented `resources` capability from the MCP handshake that caused Cursor to report 0 tools even though `tools/list` was working correctly
+
 ## [1.3.4] - 2026-08-19
 
 ### Added
